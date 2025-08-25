@@ -1,0 +1,74 @@
+<resources>
+    <string name="app_name">Wazuh Mobile</string>
+    <string name="app_subtitle">Security Event Monitoring</string>
+    
+    <!-- Splash Screen -->
+    <string name="loading">Loading...</string>
+    
+    <!-- Login Screen -->
+    <string name="welcome_back">Welcome Back</string>
+    <string name="sign_in_subtitle">Sign in to your Wazuh account</string>
+    <string name="server_configuration">Server Configuration</string>
+    <string name="server_configuration_subtitle">Dynamic connection to your Wazuh server</string>
+    <string name="wazuh_server_url">Wazuh Server URL</string>
+    <string name="server_url_hint">https://your-wazuh-server.com</string>
+    <string name="username">Username</string>
+    <string name="username_hint">Enter your username</string>
+    <string name="password">Password</string>
+    <string name="password_hint">Enter your password</string>
+    <string name="sign_in">Sign In</string>
+    <string name="connecting">Connecting...</string>
+    <string name="login_error">Login failed. Please check your credentials.</string>
+    <string name="server_error">Cannot connect to server. Please check the URL.</string>
+    
+    <!-- Dashboard -->
+    <string name="good_morning">Good morning</string>
+    <string name="soc_analyst">SOC Analyst</string>
+    <string name="wazuh_api">Wazuh API</string>
+    <string name="openai_api">OpenAI API</string>
+    <string name="connected">Connected</string>
+    <string name="active">Active</string>
+    <string name="inactive">Inactive</string>
+    
+    <!-- Statistics -->
+    <string name="total_events">Total Events (3h)</string>
+    <string name="high_critical_alerts">High-Critical Alerts</string>
+    <string name="new_alerts">new alerts</string>
+    <string name="from_last_period">from last period</string>
+    
+    <!-- Agent Monitoring -->
+    <string name="agent_monitoring">Agent Monitoring</string>
+    <string name="web_server">Web Server 01</string>
+    <string name="database_server">Database Server</string>
+    <string name="workstation">Workstation 03</string>
+    
+    <!-- AI Summary -->
+    <string name="ai_summary">AI Summary</string>
+    <string name="security_overview">Security Overview</string>
+    <string name="ai_generated">AI Generated</string>
+    <string name="ai_summary_text">In the last 3 hours your system detected 15 high-severity events, primarily brute-force login attempts on Web Server 01. The attack originated from IP 185.234.xxx.xxx. Immediate action recommended: block the source IP and review authentication logs.</string>
+    
+    <!-- High Priority Alerts -->
+    <string name="high_priority_alerts">High Priority Alerts</string>
+    <string name="critical_level_15">CRITICAL • Level 15</string>
+    <string name="high_level_12">HIGH • Level 12</string>
+    <string name="multiple_failed_ssh">Multiple Failed SSH Login Attempts</string>
+    <string name="suspicious_process">Suspicious Process Execution</string>
+    <string name="failed_login_description">25 failed login attempts detected from IP 185.234.xxx.xxx targeting root account on Web Server 01</string>
+    <string name="suspicious_process_description">Unusual process \'crypto-miner.exe\' detected</string>
+    <string name="minutes_ago">min ago</string>
+    
+    <!-- Navigation -->
+    <string name="dashboard">Dashboard</string>
+    <string name="alerts">Alerts</string>
+    <string name="events">Events</string>
+    <string name="settings">Settings</string>
+    
+    <!-- Common -->
+    <string name="refresh">Refresh</string>
+    <string name="retry">Retry</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="error">Error</string>
+    <string name="success">Success</string>
+</resources>

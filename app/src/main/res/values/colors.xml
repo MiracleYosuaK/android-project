@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    
+    <!-- Wazuh Brand Colors -->
+    <color name="wazuh_primary">#2E4A7A</color>
+    <color name="wazuh_primary_dark">#1E3A6A</color>
+    <color name="wazuh_secondary">#4A90E2</color>
+    <color name="wazuh_accent">#FF6B6B</color>
+    
+    <!-- Background Colors -->
+    <color name="background_light">#F5F7FA</color>
+    <color name="background_card">#FFFFFF</color>
+    <color name="background_gradient_start">#2E4A7A</color>
+    <color name="background_gradient_end">#4A90E2</color>
+    
+    <!-- Text Colors -->
+    <color name="text_primary">#2C3E50</color>
+    <color name="text_secondary">#7F8C8D</color>
+    <color name="text_white">#FFFFFF</color>
+    <color name="text_hint">#BDC3C7</color>
+    
+    <!-- Status Colors -->
+    <color name="status_connected">#27AE60</color>
+    <color name="status_active">#2ECC71</color>
+    <color name="status_inactive">#E74C3C</color>
+    <color name="status_warning">#F39C12</color>
+    
+    <!-- Alert Colors -->
+    <color name="alert_critical">#E74C3C</color>
+    <color name="alert_high">#E67E22</color>
+    <color name="alert_medium">#F39C12</color>
+    <color name="alert_low">#3498DB</color>
+    
+    <!-- Card Colors -->
+    <color name="card_shadow">#1A000000</color>
+    <color name="divider">#ECEFF1</color>
+</resources>
