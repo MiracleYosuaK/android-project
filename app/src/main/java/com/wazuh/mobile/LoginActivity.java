@@ -9,7 +9,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
-import com.wazuh.mobile.ApiClient;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -100,37 +99,53 @@ public class LoginActivity extends AppCompatActivity {
         return url.startsWith("http://") || url.startsWith("https://");
     }
 
-private void performLogin(String serverUrl, String username, String password) {
-    new Thread(() -> {
-        try {
-            ApiClient apiClient = new ApiClient(serverUrl);
-            String token = apiClient.loginToMyBackend(username, password);
+    private void performLogin(String serverUrl, String username, String password) {
+        new Thread(() -> {
+            try {
+                ApiClient apiClient = new ApiClient(serverUrl);
+                // Panggil metode login, yang sekarang mengembalikan void.
+                // Data sesi akan disimpan di dalam instance apiClient.
+                apiClient.loginToMyBackend(username, password);
 
-            runOnUiThread(() -> {
-                loginSuccess(serverUrl, username, token);
-            });
+                runOnUiThread(() -> {
+                    // Berikan instance apiClient ke metode loginSuccess
+                    loginSuccess(serverUrl, username, apiClient);
+                });
 
-        } catch (Exception e) {
-            runOnUiThread(() -> {
-                loginFailed("Login failed: " + e.getMessage());
-            });
-        }
-    }).start();
-}
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    loginFailed("Login failed: " + e.getMessage());
+                });
+            }
+        }).start();
+    }
 
-private void loginSuccess(String serverUrl, String username, String token) {
-    SharedPreferences.Editor editor = sharedPreferences.edit();
-    editor.putString("server_url", serverUrl);
-    editor.putString("username", username);
-    editor.putString("token", token);
-    editor.putBoolean("is_logged_in", true);
-    editor.apply();
+    private void loginSuccess(String serverUrl, String username, ApiClient apiClient) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("server_url", serverUrl);
+        editor.putString("username", username);
+        // Kita tidak bisa lagi mengambil token dari return value,
+        // jadi kita perlu cara baru untuk menyimpan data sesi.
+        // Metode ini tidak lagi memadai.
+        // Kita akan menyimpannya sebagai token, host, dan port
+        // di SharedPreferences.
+        // Tapi karena logic penyimpanan sudah di MainActivity, kita akan
+        // menyederhanakan kode ini.
 
-    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-    startActivity(intent);
-    finish();
-    overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
-}
+        editor.putBoolean("is_logged_in", true);
+        editor.apply();
+
+        // Kirim data yang diperlukan ke MainActivity
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        // Simpan data di Intent
+        intent.putExtra("SESSION_TOKEN", apiClient.getSessionToken());
+        intent.putExtra("WAZUH_HOST", apiClient.getWazuhHost());
+        intent.putExtra("WAZUH_PORT", apiClient.getWazuhPort());
+
+        startActivity(intent);
+        finish();
+        overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
+    }
 
 
     private void loginFailed(String message) {

@@ -10,7 +10,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
 public class RegisterActivity extends AppCompatActivity {
-    private TextInputEditText etAppUsername, etAppPassword, etWazuhUsername, etWazuhPassword;
+    private TextInputEditText etAppUsername, etAppPassword, etWazuhUsername, etWazuhPassword, etWazuhHost, etWazuhPort;
     private MaterialButton btnRegister;
 
     @Override
@@ -22,6 +22,8 @@ public class RegisterActivity extends AppCompatActivity {
         etAppPassword = findViewById(R.id.etAppPassword);
         etWazuhUsername = findViewById(R.id.etWazuhUsername);
         etWazuhPassword = findViewById(R.id.etWazuhPassword);
+        etWazuhHost = findViewById(R.id.etWazuhHost);
+        etWazuhPort = findViewById(R.id.etWazuhPort);
         btnRegister = findViewById(R.id.btnRegister);
 
         btnRegister.setOnClickListener(v -> attemptRegister());
@@ -32,9 +34,12 @@ public class RegisterActivity extends AppCompatActivity {
         String appPassword = etAppPassword.getText().toString().trim();
         String wazuhUsername = etWazuhUsername.getText().toString().trim();
         String wazuhPassword = etWazuhPassword.getText().toString().trim();
+        String wazuhHost = etWazuhHost.getText().toString().trim();
+        String wazuhPort = etWazuhPort.getText().toString().trim();
 
         if (TextUtils.isEmpty(appUsername) || TextUtils.isEmpty(appPassword) ||
-                TextUtils.isEmpty(wazuhUsername) || TextUtils.isEmpty(wazuhPassword)) {
+                TextUtils.isEmpty(wazuhUsername) || TextUtils.isEmpty(wazuhPassword) ||
+                TextUtils.isEmpty(wazuhHost) || TextUtils.isEmpty(wazuhPort)) {
             Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -44,13 +49,13 @@ public class RegisterActivity extends AppCompatActivity {
 
         new Thread(() -> {
             try {
-                // Pastikan ini adalah URL backend Flask Anda
-                ApiClient apiClient = new ApiClient("https://678b45bfb956.ngrok-free.app");
-                apiClient.register(appUsername, appPassword, wazuhUsername, wazuhPassword);
+                // Gunakan URL backend Flask Anda
+                ApiClient apiClient = new ApiClient("https://cc5d39301d57.ngrok-free.app");
+                apiClient.register(appUsername, appPassword, wazuhUsername, wazuhPassword, wazuhHost, wazuhPort);
 
                 runOnUiThread(() -> {
                     Toast.makeText(this, "Registration successful!", Toast.LENGTH_SHORT).show();
-                    finish(); // Kembali ke halaman login
+                    finish();
                 });
             } catch (Exception e) {
                 runOnUiThread(() -> {

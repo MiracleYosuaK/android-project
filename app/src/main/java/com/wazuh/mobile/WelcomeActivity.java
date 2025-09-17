@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import com.wazuh.mobile.LoginActivity;
 import com.wazuh.mobile.R;
+import com.wazuh.mobile.RegisterActivity;
 
 
 public class WelcomeActivity extends AppCompatActivity {
