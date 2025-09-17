@@ -13,7 +13,7 @@ import java.util.List;
 
 public class AgentAdapter extends RecyclerView.Adapter<AgentAdapter.AgentViewHolder> {
 
-    private Context context;
+    private final Context context;
     private List<Agent> agents;
 
     public AgentAdapter(Context context, List<Agent> agents) {

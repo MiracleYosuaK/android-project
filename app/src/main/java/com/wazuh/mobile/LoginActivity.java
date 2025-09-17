@@ -9,6 +9,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.wazuh.mobile.ApiClient;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -103,7 +104,7 @@ private void performLogin(String serverUrl, String username, String password) {
     new Thread(() -> {
         try {
             ApiClient apiClient = new ApiClient(serverUrl);
-            String token = apiClient.login(username, password);
+            String token = apiClient.loginToMyBackend(username, password);
 
             runOnUiThread(() -> {
                 loginSuccess(serverUrl, username, token);

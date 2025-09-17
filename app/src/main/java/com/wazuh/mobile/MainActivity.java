@@ -65,14 +65,11 @@ public class MainActivity extends AppCompatActivity {
                 } else if (itemId == R.id.nav_alerts) {
                     // Navigate to alerts (implement later)
                     return true;
-                } else if (itemId == R.id.nav_events) {
+                } else // Navigate to settings (implement later)
+                    if (itemId == R.id.nav_events) {
                     // Navigate to events (implement later)
                     return true;
-                } else if (itemId == R.id.nav_settings) {
-                    // Navigate to settings (implement later)
-                    return true;
-                }
-                return false;
+                } else return itemId == R.id.nav_settings;
             }
         });
     }
@@ -86,7 +83,7 @@ private void loadDashboardData() {
         try {
             ApiClient apiClient = new ApiClient(serverUrl);
             // Restore token manually
-            apiClient.login(prefs.getString("username", ""), ""); // Optional if needed
+            apiClient.loginToMyBackend(prefs.getString("username", ""), ""); // Optional if needed
 
             String agentsJson = apiClient.getAgents();
             String alertsJson = apiClient.getAlerts();

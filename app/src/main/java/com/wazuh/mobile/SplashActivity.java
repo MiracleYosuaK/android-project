@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import com.wazuh.mobile.WelcomeActivity;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -20,7 +21,7 @@ public class SplashActivity extends AppCompatActivity {
 
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             // Pindah ke halaman berikutnya (contoh: LoginActivity)
-            Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
+            Intent intent = new Intent(SplashActivity.this, WelcomeActivity.class);
             startActivity(intent);
             finish(); // tutup SplashActivity supaya tidak bisa kembali
         }, SPLASH_DELAY);

@@ -1,0 +1,38 @@
+# Gradle
+.gradle/
+**/build/
+*/build/
+
+# Local configuration
+local.properties
+
+# IDE files
+.idea/
+*.iml
+
+# Logs
+*.log
+
+# Android Studio captures
+captures/
+
+# NDK / JNI build
+obj/
+.externalNativeBuild/
+.cxx/
+
+# Generated files
+gen/
+out/
+
+# Keystore files (jangan pernah commit ini!)
+*.jks
+*.keystore
+
+# Google Services (API keys, secrets)
+google-services.json
+app/google-services.json
+
+# OS-specific
+.DS_Store
+Thumbs.db

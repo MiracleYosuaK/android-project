@@ -10,7 +10,7 @@ import com.wazuh.mobile.Alert;
 
 public class AlertAdapter extends RecyclerView.Adapter<AlertAdapter.ViewHolder> {
 
-    private Context context;
+    private final Context context;
     private List<Alert> alerts;
 
     public AlertAdapter(Context context, List<Alert> alerts) {

@@ -1,0 +1,31 @@
+# Gradle
+.gradle/
+build/
+*/build/
+
+# Local configuration
+local.properties
+
+# IDE files
+.idea/
+*.iml
+
+# Log files
+*.log
+
+# Android Studio captures
+captures/
+
+# NDK
+obj/
+
+# Generated files
+.gen/
+out/
+
+# Keystore files
+*.jks
+*.keystore
+
+# Misc
+.DS_Store
