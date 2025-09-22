@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_light">
@@ -51,12 +52,23 @@
                             android:id="@+id/tvUsername"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/soc_analyst"
                             android:textColor="@color/text_white"
                             android:textSize="20sp"
-                            android:textStyle="bold" />
+                            android:textStyle="bold"
+                            tools:text="SOC Analyst" />
 
                     </LinearLayout>
+
+                    <!-- Tombol Sync Baru -->
+                    <ImageButton
+                        android:id="@+id/btnSyncNow"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_sync"
+                        app:tint="@color/white"
+                        android:contentDescription="@string/sync_now" />
+
 
                 </LinearLayout>
 
@@ -95,14 +107,14 @@
                                 android:id="@+id/tvApiStatus"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="@string/checking"
-                                android:textColor="@color/text_secondary"
+                                android:textColor="@color/status_connected"
                                 android:textSize="14sp"
                                 android:textStyle="bold"
                                 android:drawableStart="@drawable/ic_circle"
-                                android:drawableTint="@color/text_secondary"
+                                android:drawableTint="@color/status_connected"
                                 android:drawablePadding="4dp"
-                                android:gravity="center_vertical" />
+                                android:gravity="center_vertical"
+                                tools:text="@string/connected"/>
 
                         </LinearLayout>
 
@@ -178,18 +190,18 @@
                             android:id="@+id/tvTotalEvents"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="-"
                             android:textColor="@color/text_primary"
                             android:textSize="28sp"
                             android:textStyle="bold"
-                            android:layout_marginBottom="4dp" />
+                            android:layout_marginBottom="4dp"
+                            tools:text="2,847" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/total_events"
                             android:textColor="@color/text_secondary"
-                            android:textSize="12sp" />
+                            android:textSize="12sp"/>
 
                     </LinearLayout>
 
@@ -213,18 +225,18 @@
                             android:id="@+id/tvHighCriticalAlerts"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="-"
                             android:textColor="@color/alert_critical"
                             android:textSize="28sp"
                             android:textStyle="bold"
-                            android:layout_marginBottom="4dp" />
+                            android:layout_marginBottom="4dp"
+                            tools:text="15" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/high_critical_alerts"
                             android:textColor="@color/text_secondary"
-                            android:textSize="12sp" />
+                            android:textSize="12sp"/>
 
                     </LinearLayout>
 
@@ -272,22 +284,20 @@
                     android:textStyle="bold"
                     android:layout_marginBottom="12dp" />
 
+                <TextView
+                    android:id="@+id/tvNoHighPriorityAlerts"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/no_high_priority_alerts"
+                    android:textColor="@color/text_secondary"
+                    android:visibility="gone"
+                    tools:visibility="visible"/>
+
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvAlerts"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:nestedScrollingEnabled="false" />
-
-                <!-- PERBAIKAN: Menggunakan nama string yang benar -->
-                <TextView
-                    android:id="@+id/tvNoAlertsMessage"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/no_high_priority_alerts"
-                    android:textColor="@color/text_secondary"
-                    android:padding="16dp"
-                    android:gravity="center"
-                    android:visibility="gone" /> <!-- Mulai dengan disembunyikan -->
 
             </LinearLayout>
 
@@ -295,6 +305,7 @@
 
     </androidx.core.widget.NestedScrollView>
 
+    <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"
