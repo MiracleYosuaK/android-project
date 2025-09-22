@@ -64,55 +64,6 @@
 
         </LinearLayout>
 
-        <!-- Server Configuration Section -->
-        <androidx.cardview.widget.CardView
-            style="@style/CardView.WazuhMobile"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/server_configuration"
-                    android:textAppearance="@style/TextAppearance.WazuhMobile.Body1"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="4dp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/server_configuration_subtitle"
-                    android:textAppearance="@style/TextAppearance.WazuhMobile.Caption"
-                    android:layout_marginBottom="16dp" />
-
-                <!-- Server URL Input -->
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/TextInputLayout.WazuhMobile"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/wazuh_server_url">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etServerUrl"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="@string/server_url_hint"
-                        android:inputType="textUri"
-                        android:textSize="14sp" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-            </LinearLayout>
-
-        </androidx.cardview.widget.CardView>
-
         <!-- Login Form -->
         <androidx.cardview.widget.CardView
             style="@style/CardView.WazuhMobile"

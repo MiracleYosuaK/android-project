@@ -4,22 +4,28 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.View;
+import android.util.Log;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import org.json.JSONObject;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private TextInputEditText etServerUrl, etUsername, etPassword;
+    private TextInputEditText etUsername, etPassword;
     private MaterialButton btnSignIn;
     private SharedPreferences sharedPreferences;
+    private ApiClient apiClient;
+    private static final String TAG = "LoginActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        // Inisialisasi ApiClient di sini
+        apiClient = new ApiClient(BuildConfig.BACKEND_BASE_URL);
 
         initializeViews();
         setupClickListeners();
@@ -27,46 +33,26 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void initializeViews() {
-        etServerUrl = findViewById(R.id.etServerUrl);
         etUsername = findViewById(R.id.etUsername);
         etPassword = findViewById(R.id.etPassword);
         btnSignIn = findViewById(R.id.btnSignIn);
-        
         sharedPreferences = getSharedPreferences("WazuhPrefs", MODE_PRIVATE);
     }
 
     private void setupClickListeners() {
-        btnSignIn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                attemptLogin();
-            }
-        });
+        btnSignIn.setOnClickListener(v -> attemptLogin());
     }
 
     private void loadSavedCredentials() {
-        String savedServerUrl = sharedPreferences.getString("server_url", "");
         String savedUsername = sharedPreferences.getString("username", "");
-        
-        if (!TextUtils.isEmpty(savedServerUrl)) {
-            etServerUrl.setText(savedServerUrl);
-        }
         if (!TextUtils.isEmpty(savedUsername)) {
             etUsername.setText(savedUsername);
         }
     }
 
     private void attemptLogin() {
-        String serverUrl = etServerUrl.getText().toString().trim();
         String username = etUsername.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
-
-        // Validate inputs
-        if (TextUtils.isEmpty(serverUrl)) {
-            etServerUrl.setError("Server URL is required");
-            etServerUrl.requestFocus();
-            return;
-        }
 
         if (TextUtils.isEmpty(username)) {
             etUsername.setError("Username is required");
@@ -80,84 +66,60 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        // Validate URL format
-        if (!isValidUrl(serverUrl)) {
-            etServerUrl.setError("Please enter a valid URL");
-            etServerUrl.requestFocus();
-            return;
-        }
-
-        // Show loading state
         btnSignIn.setText("Connecting...");
         btnSignIn.setEnabled(false);
-
-        // Simulate login process (replace with actual API call)
-        performLogin(serverUrl, username, password);
+        performLogin(username, password);
     }
 
-    private boolean isValidUrl(String url) {
-        return url.startsWith("http://") || url.startsWith("https://");
-    }
-
-    private void performLogin(String serverUrl, String username, String password) {
+    private void performLogin(String username, String password) {
         new Thread(() -> {
             try {
-                ApiClient apiClient = new ApiClient(serverUrl);
-                // Panggil metode login, yang sekarang mengembalikan void.
-                // Data sesi akan disimpan di dalam instance apiClient.
-                apiClient.loginToMyBackend(username, password);
+                // Panggil metode yang benar: loginToMyBackend
+                JSONObject response = apiClient.loginToMyBackend(username, password);
 
-                runOnUiThread(() -> {
-                    // Berikan instance apiClient ke metode loginSuccess
-                    loginSuccess(serverUrl, username, apiClient);
-                });
+                // Ekstrak data dari JSONObject
+                String sessionToken = response.getString("session_token");
+                String appUsername = response.getString("app_username");
+
+                if (sessionToken == null || sessionToken.isEmpty()) {
+                    throw new Exception("Login failed: Invalid token received from server.");
+                }
+
+                runOnUiThread(() -> loginSuccess(appUsername, sessionToken));
 
             } catch (Exception e) {
-                runOnUiThread(() -> {
-                    loginFailed("Login failed: " + e.getMessage());
-                });
+                Log.e(TAG, "Login Exception", e);
+                runOnUiThread(() -> loginFailed("Login failed: " + e.getMessage()));
             }
         }).start();
     }
 
-    private void loginSuccess(String serverUrl, String username, ApiClient apiClient) {
+    private void loginSuccess(String username, String sessionToken) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("server_url", serverUrl);
         editor.putString("username", username);
-        // Kita tidak bisa lagi mengambil token dari return value,
-        // jadi kita perlu cara baru untuk menyimpan data sesi.
-        // Metode ini tidak lagi memadai.
-        // Kita akan menyimpannya sebagai token, host, dan port
-        // di SharedPreferences.
-        // Tapi karena logic penyimpanan sudah di MainActivity, kita akan
-        // menyederhanakan kode ini.
-
+        editor.putString("session_token", sessionToken);
         editor.putBoolean("is_logged_in", true);
         editor.apply();
 
-        // Kirim data yang diperlukan ke MainActivity
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-        // Simpan data di Intent
-        intent.putExtra("SESSION_TOKEN", apiClient.getSessionToken());
-        intent.putExtra("WAZUH_HOST", apiClient.getWazuhHost());
-        intent.putExtra("WAZUH_PORT", apiClient.getWazuhPort());
+        intent.putExtra("SESSION_TOKEN", sessionToken);
+        intent.putExtra("APP_USERNAME", username);
 
         startActivity(intent);
         finish();
         overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
     }
 
-
     private void loginFailed(String message) {
         btnSignIn.setText("Sign In");
         btnSignIn.setEnabled(true);
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        // Prevent going back to splash screen
         moveTaskToBack(true);
     }
 }
+

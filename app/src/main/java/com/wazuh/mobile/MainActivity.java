@@ -1,143 +1,185 @@
 package com.wazuh.mobile;
 
-
-import com.wazuh.mobile.AlertAdapter;
+import android.content.Intent;
 import android.os.Bundle;
-import android.view.MenuItem;
-import androidx.annotation.NonNull;
+import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
-import android.content.SharedPreferences;
-
 
 public class MainActivity extends AppCompatActivity {
 
-    private RecyclerView rvAgents, rvAlerts;
-    private SwipeRefreshLayout swipeRefreshLayout;
-    private BottomNavigationView bottomNavigation;
+    private static final String TAG = "MainActivity";
+    private ApiClient apiClient;
+    private String sessionToken;
+    private String appUsername;
+
     private AgentAdapter agentAdapter;
-    private AlertAdapter alertAdapter; // Make sure AlertAdapter is correctly defined/imported
+    private AlertAdapter alertAdapter;
+
+    // PERBAIKAN: Menyamakan nama variabel dengan ID di XML
+    private TextView tvApiStatus, tvTotalEvents, tvHighCriticalAlerts, tvUsername, tvNoAlertsMessage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        apiClient = new ApiClient(BuildConfig.BACKEND_BASE_URL);
+
         initializeViews();
         setupRecyclerViews();
         setupBottomNavigation();
-        loadDashboardData(); // Call this after adapters are set up
+
+        Intent intent = getIntent();
+        sessionToken = intent.getStringExtra("SESSION_TOKEN");
+        appUsername = intent.getStringExtra("APP_USERNAME");
+
+        if (sessionToken == null || appUsername == null) {
+            Log.e(TAG, "Session data is missing. Redirecting to login.");
+            Toast.makeText(this, "Session expired. Please log in again.", Toast.LENGTH_LONG).show();
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
+
+        tvUsername.setText(appUsername);
+        loadAllData();
     }
 
     private void initializeViews() {
-        rvAgents = findViewById(R.id.rvAgents);
-        rvAlerts = findViewById(R.id.rvAlerts);
-        bottomNavigation = findViewById(R.id.bottomNavigation);
+        tvApiStatus = findViewById(R.id.tvApiStatus);
+        tvTotalEvents = findViewById(R.id.tvTotalEvents);
+        tvHighCriticalAlerts = findViewById(R.id.tvHighCriticalAlerts);
+        tvUsername = findViewById(R.id.tvUsername);
+        // PERBAIKAN: Menggunakan ID yang benar dari activity_main.xml
+        tvNoAlertsMessage = findViewById(R.id.tvNoAlertsMessage);
     }
 
     private void setupRecyclerViews() {
-        // Setup Agents RecyclerView
-        rvAgents.setLayoutManager(new LinearLayoutManager(this));
         agentAdapter = new AgentAdapter(this, new ArrayList<>());
+        RecyclerView rvAgents = findViewById(R.id.rvAgents);
+        rvAgents.setLayoutManager(new LinearLayoutManager(this));
         rvAgents.setAdapter(agentAdapter);
 
-        // Setup Alerts RecyclerView
+        alertAdapter = new AlertAdapter(this, new ArrayList<>());
+        RecyclerView rvAlerts = findViewById(R.id.rvAlerts);
         rvAlerts.setLayoutManager(new LinearLayoutManager(this));
-        // You'll need to initialize alertAdapter here if you plan to use it
-        alertAdapter = new AlertAdapter(this, new ArrayList<>()); // Assuming AlertAdapter constructor
         rvAlerts.setAdapter(alertAdapter);
     }
 
     private void setupBottomNavigation() {
+        BottomNavigationView bottomNavigation = findViewById(R.id.bottomNavigation);
         bottomNavigation.setSelectedItemId(R.id.nav_dashboard);
-        bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                int itemId = item.getItemId();
-                if (itemId == R.id.nav_dashboard) {
-                    // Navigate to dashboard (implement later)
-                    return true;
-                } else if (itemId == R.id.nav_alerts) {
-                    // Navigate to alerts (implement later)
-                    return true;
-                } else // Navigate to settings (implement later)
-                    if (itemId == R.id.nav_events) {
-                    // Navigate to events (implement later)
-                    return true;
-                } else return itemId == R.id.nav_settings;
-            }
-        });
     }
 
-private void loadDashboardData() {
-    SharedPreferences prefs = getSharedPreferences("WazuhPrefs", MODE_PRIVATE);
-    String serverUrl = prefs.getString("server_url", "");
-    String token = prefs.getString("token", "");
+    private void loadAllData() {
+        loadAgentsData();
+        loadDashboardSummary();
+    }
 
-    new Thread(() -> {
+    private void loadAgentsData() {
+        new Thread(() -> {
+            try {
+                JSONObject response = apiClient.getAgents(sessionToken, appUsername);
+                List<Agent> agents = parseAgentsJson(response);
+                runOnUiThread(() -> agentAdapter.updateAgents(agents));
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to load agents", e);
+                runOnUiThread(() -> Toast.makeText(MainActivity.this, "Error loading agents", Toast.LENGTH_SHORT).show());
+            }
+        }).start();
+    }
+
+    private void loadDashboardSummary() {
+        new Thread(() -> {
+            try {
+                JSONObject response = apiClient.getDashboardSummary(sessionToken, appUsername);
+                runOnUiThread(() -> updateDashboardUI(response));
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to load dashboard summary", e);
+                runOnUiThread(() -> {
+                    Toast.makeText(MainActivity.this, "Error loading dashboard summary", Toast.LENGTH_SHORT).show();
+                    updateApiStatus("Disconnected", R.color.alert_critical);
+                });
+            }
+        }).start();
+    }
+
+    private void updateDashboardUI(JSONObject data) {
         try {
-            ApiClient apiClient = new ApiClient(serverUrl);
-            // Restore token manually
-            apiClient.loginToMyBackend(prefs.getString("username", ""), ""); // Optional if needed
+            String apiStatus = data.optString("api_status", "Disconnected");
+            updateApiStatus(apiStatus, R.color.status_connected);
 
-            String agentsJson = apiClient.getAgents();
-            String alertsJson = apiClient.getAlerts();
+            int totalEvents = data.optInt("total_events_3h", 0);
+            tvTotalEvents.setText(String.valueOf(totalEvents));
 
-            // TODO: parse JSON into Agent & Alert objects
-            // For now just log
-            System.out.println("Agents: " + agentsJson);
-            System.out.println("Alerts: " + alertsJson);
+            int highCriticalAlerts = data.optInt("high_critical_alerts_count", 0);
+            tvHighCriticalAlerts.setText(String.valueOf(highCriticalAlerts));
 
-            runOnUiThread(() -> {
-                // Replace with parsed data
-                agentAdapter.updateAgents(new ArrayList<>());
-                alertAdapter.updateAlerts(new ArrayList<>());
-            });
+            List<Alert> highPriorityAlerts = parseAlertsJson(data);
+            alertAdapter.updateAlerts(highPriorityAlerts);
 
+            // PERBAIKAN: Menggunakan variabel yang sudah diganti namanya
+            if (highPriorityAlerts.isEmpty()) {
+                tvNoAlertsMessage.setVisibility(View.VISIBLE);
+            } else {
+                tvNoAlertsMessage.setVisibility(View.GONE);
+            }
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to parse dashboard JSON", e);
+            updateApiStatus("Error", R.color.alert_critical);
         }
-    }).start();
-}
+    }
 
+    private void updateApiStatus(String status, int colorResId) {
+        tvApiStatus.setText(status);
+        int color = ContextCompat.getColor(this, colorResId);
+        tvApiStatus.setTextColor(color);
+        tvApiStatus.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_circle, 0, 0, 0);
+        if (tvApiStatus.getCompoundDrawables()[0] != null) {
+            tvApiStatus.getCompoundDrawables()[0].setTint(color);
+        }
+    }
 
-    private List<Agent> createMockAgents() {
+    private List<Agent> parseAgentsJson(JSONObject jsonResponse) {
         List<Agent> agents = new ArrayList<>();
-        agents.add(new Agent("Web Server 01", "192.168.1.100", Agent.Status.ACTIVE, Agent.Type.SERVER));
-        agents.add(new Agent("Database Server", "192.168.1.101", Agent.Status.ACTIVE, Agent.Type.DATABASE));
-        agents.add(new Agent("Workstation 03", "192.168.1.150", Agent.Status.INACTIVE, Agent.Type.WORKSTATION));
+        try {
+            JSONArray items = jsonResponse.getJSONArray("agents");
+            for (int i = 0; i < items.length(); i++) {
+                JSONObject item = items.getJSONObject(i);
+                String name = item.getString("name");
+                String ip = item.getString("ip");
+                Agent.Status status = "active".equalsIgnoreCase(item.getString("status")) ? Agent.Status.ACTIVE : Agent.Status.INACTIVE;
+                agents.add(new Agent(name, ip, status, Agent.Type.SERVER));
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error parsing agents JSON", e);
+        }
         return agents;
     }
 
-    private List<Alert> createMockAlerts() {
+    private List<Alert> parseAlertsJson(JSONObject jsonResponse) {
         List<Alert> alerts = new ArrayList<>();
-        alerts.add(new Alert(
-                "Multiple Failed SSH Login Attempts",
-                "25 failed login attempts detected from IP 185.234.xxx.xxx targeting root account on Web Server 01",
-                "CRITICAL • Level 15",
-                "5 min ago",
-                Alert.Severity.CRITICAL
-        ));
-        alerts.add(new Alert(
-                "Suspicious Process Execution",
-                "Unusual process 'crypto-miner.exe' detected",
-                "HIGH • Level 12",
-                "12 min ago",
-                Alert.Severity.HIGH
-        ));
+        try {
+            JSONArray items = jsonResponse.getJSONArray("high_priority_alerts");
+            for (int i = 0; i < items.length(); i++) {
+                // Logika untuk mem-parsing detail alert bisa ditambahkan di sini nanti
+                // JSONObject item = items.getJSONObject(i);
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "No high priority alerts details in summary response.");
+        }
         return alerts;
-    }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed(); // Call super first usually
-        // Move app to background instead of closing
-        moveTaskToBack(true);
     }
 }
 
