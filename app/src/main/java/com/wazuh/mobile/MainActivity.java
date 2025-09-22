@@ -1,6 +1,7 @@
 package com.wazuh.mobile;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -31,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
     private AlertAdapter alertAdapter;
 
     private TextView tvApiStatus, tvTotalEvents, tvHighCriticalAlerts, tvUsername, tvNoHighPriorityAlerts;
-    private ImageButton btnSyncNow;
+    private ImageButton btnSyncNow, btnLogout;
     private RecyclerView rvAgents, rvAlerts;
 
 
@@ -42,21 +43,20 @@ public class MainActivity extends AppCompatActivity {
 
         apiClient = new ApiClient(BuildConfig.BACKEND_BASE_URL);
 
+        // Ambil sesi dari SharedPreferences
+        SharedPreferences sharedPreferences = getSharedPreferences("WazuhPrefs", MODE_PRIVATE);
+        sessionToken = sharedPreferences.getString("session_token", null);
+        appUsername = sharedPreferences.getString("app_username", null);
+
+        if (sessionToken == null || appUsername == null) {
+            handleLogout();
+            return;
+        }
+
         initializeViews();
         setupRecyclerViews();
         setupBottomNavigation();
         setupClickListeners();
-
-        Intent intent = getIntent();
-        sessionToken = intent.getStringExtra("SESSION_TOKEN");
-        appUsername = intent.getStringExtra("APP_USERNAME");
-
-        if (sessionToken == null || appUsername == null) {
-            Toast.makeText(this, "Session expired. Please login again.", Toast.LENGTH_LONG).show();
-            startActivity(new Intent(this, LoginActivity.class));
-            finish();
-            return;
-        }
 
         tvUsername.setText(appUsername);
         loadAllData();
@@ -69,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
         tvUsername = findViewById(R.id.tvUsername);
         tvNoHighPriorityAlerts = findViewById(R.id.tvNoHighPriorityAlerts);
         btnSyncNow = findViewById(R.id.btnSyncNow);
+        btnLogout = findViewById(R.id.btnLogout);
         rvAgents = findViewById(R.id.rvAgents);
         rvAlerts = findViewById(R.id.rvAlerts);
     }
@@ -88,7 +89,24 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Syncing data...", Toast.LENGTH_SHORT).show();
             loadAllData();
         });
+
+        btnLogout.setOnClickListener(v -> handleLogout());
     }
+
+    private void handleLogout() {
+        // Hapus sesi dari SharedPreferences
+        SharedPreferences sharedPreferences = getSharedPreferences("WazuhPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.clear();
+        editor.apply();
+
+        // Arahkan ke LoginActivity
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
 
     private void setupBottomNavigation() {
         BottomNavigationView bottomNavigation = findViewById(R.id.bottomNavigation);
@@ -156,9 +174,6 @@ public class MainActivity extends AppCompatActivity {
         tvApiStatus.getCompoundDrawables()[0].setTint(ContextCompat.getColor(this, colorResId));
     }
 
-    // =======================================================
-    // === FUNGSI YANG DIPERBAIKI ADA DI SINI ===
-    // =======================================================
     private List<Agent> parseAgentsJson(JSONObject jsonResponse) {
         List<Agent> agents = new ArrayList<>();
         if (jsonResponse == null) return agents;
@@ -172,8 +187,6 @@ public class MainActivity extends AppCompatActivity {
                 String statusStr = item.getString("status");
 
                 Agent.Status status = "active".equalsIgnoreCase(statusStr) ? Agent.Status.ACTIVE : Agent.Status.INACTIVE;
-
-                // Tipe agent di-hardcode untuk sementara, bisa dikembangkan nanti
                 Agent.Type type = Agent.Type.SERVER;
 
                 agents.add(new Agent(name, ip, status, type));

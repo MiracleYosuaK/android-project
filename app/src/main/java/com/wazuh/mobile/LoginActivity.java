@@ -12,42 +12,30 @@ import com.google.android.material.textfield.TextInputEditText;
 import org.json.JSONObject;
 
 public class LoginActivity extends AppCompatActivity {
-
+    private static final String TAG = "LoginActivity";
     private TextInputEditText etUsername, etPassword;
     private MaterialButton btnSignIn;
-    private SharedPreferences sharedPreferences;
     private ApiClient apiClient;
-    private static final String TAG = "LoginActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Inisialisasi ApiClient di sini
         apiClient = new ApiClient(BuildConfig.BACKEND_BASE_URL);
 
         initializeViews();
         setupClickListeners();
-        loadSavedCredentials();
     }
 
     private void initializeViews() {
         etUsername = findViewById(R.id.etUsername);
         etPassword = findViewById(R.id.etPassword);
         btnSignIn = findViewById(R.id.btnSignIn);
-        sharedPreferences = getSharedPreferences("WazuhPrefs", MODE_PRIVATE);
     }
 
     private void setupClickListeners() {
         btnSignIn.setOnClickListener(v -> attemptLogin());
-    }
-
-    private void loadSavedCredentials() {
-        String savedUsername = sharedPreferences.getString("username", "");
-        if (!TextUtils.isEmpty(savedUsername)) {
-            etUsername.setText(savedUsername);
-        }
     }
 
     private void attemptLogin() {
@@ -68,58 +56,47 @@ public class LoginActivity extends AppCompatActivity {
 
         btnSignIn.setText("Connecting...");
         btnSignIn.setEnabled(false);
+
         performLogin(username, password);
     }
 
     private void performLogin(String username, String password) {
         new Thread(() -> {
             try {
-                // Panggil metode yang benar: loginToMyBackend
+                // === PERBAIKAN DI SINI ===
+                // Mengubah nama metode dari login() menjadi loginToMyBackend()
                 JSONObject response = apiClient.loginToMyBackend(username, password);
-
-                // Ekstrak data dari JSONObject
                 String sessionToken = response.getString("session_token");
-                String appUsername = response.getString("app_username");
 
-                if (sessionToken == null || sessionToken.isEmpty()) {
-                    throw new Exception("Login failed: Invalid token received from server.");
-                }
-
-                runOnUiThread(() -> loginSuccess(appUsername, sessionToken));
+                runOnUiThread(() -> loginSuccess(sessionToken, username));
 
             } catch (Exception e) {
-                Log.e(TAG, "Login Exception", e);
+                Log.e(TAG, "Login failed", e);
                 runOnUiThread(() -> loginFailed("Login failed: " + e.getMessage()));
             }
         }).start();
     }
 
-    private void loginSuccess(String username, String sessionToken) {
+    private void loginSuccess(String sessionToken, String username) {
+        // Simpan sesi ke SharedPreferences
+        SharedPreferences sharedPreferences = getSharedPreferences("WazuhPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("username", username);
-        editor.putString("session_token", sessionToken);
         editor.putBoolean("is_logged_in", true);
+        editor.putString("session_token", sessionToken);
+        editor.putString("app_username", username);
         editor.apply();
 
-        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-        intent.putExtra("SESSION_TOKEN", sessionToken);
-        intent.putExtra("APP_USERNAME", username);
+        Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show();
 
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         startActivity(intent);
         finish();
-        overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
     }
 
     private void loginFailed(String message) {
         btnSignIn.setText("Sign In");
         btnSignIn.setEnabled(true);
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-    }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        moveTaskToBack(true);
     }
 }
 

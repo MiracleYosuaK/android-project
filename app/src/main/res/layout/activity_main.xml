@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_light">
@@ -26,18 +25,17 @@
                 android:orientation="vertical"
                 android:padding="20dp">
 
-                <!-- Greeting and Profile -->
-                <LinearLayout
+                <!-- Greeting and Actions -->
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
                     android:layout_marginBottom="20dp">
 
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
                         android:orientation="vertical">
 
                         <TextView
@@ -52,25 +50,43 @@
                             android:id="@+id/tvUsername"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:text="@string/soc_analyst"
                             android:textColor="@color/text_white"
                             android:textSize="20sp"
-                            android:textStyle="bold"
-                            tools:text="SOC Analyst" />
-
+                            android:textStyle="bold" />
                     </LinearLayout>
 
-                    <!-- Tombol Sync Baru -->
-                    <ImageButton
-                        android:id="@+id/btnSyncNow"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:src="@drawable/ic_sync"
-                        app:tint="@color/white"
-                        android:contentDescription="@string/sync_now" />
+                    <!-- Action Buttons Container -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:orientation="horizontal">
 
+                        <!-- Sync Button -->
+                        <ImageButton
+                            android:id="@+id/btnSyncNow"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:src="@drawable/ic_sync"
+                            android:contentDescription="@string/sync_now"
+                            app:tint="@color/white" />
 
-                </LinearLayout>
+                        <!-- Logout Button -->
+                        <ImageButton
+                            android:id="@+id/btnLogout"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:layout_marginStart="8dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:src="@drawable/ic_logout"
+                            android:contentDescription="@string/logout"
+                            app:tint="@color/white" />
+                    </LinearLayout>
+
+                </RelativeLayout>
 
                 <!-- API Status Cards -->
                 <LinearLayout
@@ -107,61 +123,17 @@
                                 android:id="@+id/tvApiStatus"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:text="@string/connected"
                                 android:textColor="@color/status_connected"
                                 android:textSize="14sp"
                                 android:textStyle="bold"
                                 android:drawableStart="@drawable/ic_circle"
                                 android:drawableTint="@color/status_connected"
                                 android:drawablePadding="4dp"
-                                android:gravity="center_vertical"
-                                tools:text="@string/connected"/>
-
-                        </LinearLayout>
-
-                    </androidx.cardview.widget.CardView>
-
-                    <!-- OpenAI API Status (Placeholder) -->
-                    <androidx.cardview.widget.CardView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="8dp"
-                        app:cardCornerRadius="12dp"
-                        app:cardElevation="2dp"
-                        app:cardBackgroundColor="@color/background_card">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="16dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/openai_api"
-                                android:textColor="@color/text_primary"
-                                android:textSize="12sp"
-                                android:layout_marginBottom="4dp" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/active"
-                                android:textColor="@color/status_active"
-                                android:textSize="14sp"
-                                android:textStyle="bold"
-                                android:drawableStart="@drawable/ic_circle"
-                                android:drawableTint="@color/status_active"
-                                android:drawablePadding="4dp"
                                 android:gravity="center_vertical" />
-
                         </LinearLayout>
-
                     </androidx.cardview.widget.CardView>
-
                 </LinearLayout>
-
             </LinearLayout>
 
             <!-- Statistics Section -->
@@ -171,77 +143,62 @@
                 android:orientation="horizontal"
                 android:padding="16dp"
                 android:weightSum="2">
-
-                <!-- Total Events Card -->
                 <androidx.cardview.widget.CardView
                     style="@style/CardView.WazuhMobile"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp">
-
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="16dp">
-
                         <TextView
                             android:id="@+id/tvTotalEvents"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:text="0"
                             android:textColor="@color/text_primary"
                             android:textSize="28sp"
                             android:textStyle="bold"
-                            android:layout_marginBottom="4dp"
-                            tools:text="2,847" />
-
+                            android:layout_marginBottom="4dp" />
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/total_events"
                             android:textColor="@color/text_secondary"
-                            android:textSize="12sp"/>
-
+                            android:textSize="12sp" />
                     </LinearLayout>
-
                 </androidx.cardview.widget.CardView>
-
-                <!-- High-Critical Alerts Card -->
                 <androidx.cardview.widget.CardView
                     style="@style/CardView.WazuhMobile"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp">
-
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="16dp">
-
                         <TextView
                             android:id="@+id/tvHighCriticalAlerts"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:text="0"
                             android:textColor="@color/alert_critical"
                             android:textSize="28sp"
                             android:textStyle="bold"
-                            android:layout_marginBottom="4dp"
-                            tools:text="15" />
-
+                            android:layout_marginBottom="4dp" />
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/high_critical_alerts"
                             android:textColor="@color/text_secondary"
-                            android:textSize="12sp"/>
-
+                            android:textSize="12sp" />
                     </LinearLayout>
-
                 </androidx.cardview.widget.CardView>
-
             </LinearLayout>
 
             <!-- Agent Monitoring Section -->
@@ -251,7 +208,6 @@
                 android:orientation="vertical"
                 android:paddingHorizontal="16dp"
                 android:paddingBottom="16dp">
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -259,13 +215,11 @@
                     android:textAppearance="@style/TextAppearance.WazuhMobile.Body1"
                     android:textStyle="bold"
                     android:layout_marginBottom="12dp" />
-
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvAgents"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:nestedScrollingEnabled="false" />
-
             </LinearLayout>
 
             <!-- High Priority Alerts Section -->
@@ -275,7 +229,6 @@
                 android:orientation="vertical"
                 android:paddingHorizontal="16dp"
                 android:paddingBottom="16dp">
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -283,26 +236,23 @@
                     android:textAppearance="@style/TextAppearance.WazuhMobile.Body1"
                     android:textStyle="bold"
                     android:layout_marginBottom="12dp" />
-
                 <TextView
                     android:id="@+id/tvNoHighPriorityAlerts"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/no_high_priority_alerts"
-                    android:textColor="@color/text_secondary"
+                    android:gravity="center"
+                    android:padding="16dp"
                     android:visibility="gone"
-                    tools:visibility="visible"/>
-
+                    android:textColor="@color/text_secondary"
+                    />
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvAlerts"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:nestedScrollingEnabled="false" />
-
             </LinearLayout>
-
         </LinearLayout>
-
     </androidx.core.widget.NestedScrollView>
 
     <!-- Bottom Navigation -->
@@ -314,6 +264,5 @@
         android:background="@color/white"
         app:elevation="8dp"
         app:menu="@menu/bottom_nav_menu" />
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

@@ -44,6 +44,7 @@
     <string name="checking">Checking...</string>
     <string name="no_high_priority_alerts">None</string>
     <string name="sync_now">Sync Now</string>
+    <string name="logout">Logout</string>
 
     <!-- Statistics -->
     <string name="total_events">Total Events (3h)</string>
