@@ -22,7 +22,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        apiClient = new ApiClient(BuildConfig.BACKEND_BASE_URL);
+        apiClient = new ApiClient();
 
         initializeViews();
         setupClickListeners();

@@ -41,4 +41,7 @@
     <!-- Card Colors -->
     <color name="card_shadow">#1A000000</color>
     <color name="divider">#ECEFF1</color>
+
+
+
 </resources>

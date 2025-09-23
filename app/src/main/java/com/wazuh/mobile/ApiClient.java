@@ -1,27 +1,18 @@
 package com.wazuh.mobile;
 
+import android.util.Log;
+import okhttp3.*;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-
 public class ApiClient {
-    private final String baseUrl;
-    private final OkHttpClient client;
-    public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    private final String BASE_URL = BuildConfig.BACKEND_BASE_URL;
+    private final OkHttpClient client = new OkHttpClient();
+    public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
-    public ApiClient(String baseUrl) {
-        this.baseUrl = baseUrl;
-        this.client = new OkHttpClient.Builder().build();
-    }
-
-    public void register(String appUsername, String appPassword, String wazuhUsername, String wazuhPassword, String wazuhHost, String wazuhPort, String indexerUsername, String indexerPassword, String indexerPort) throws Exception {
+    public JSONObject register(String appUsername, String appPassword, String wazuhUsername, String wazuhPassword, String wazuhHost, String wazuhPort, String indexerUsername, String indexerPassword, String indexerPort) throws IOException, JSONException {
         JSONObject jsonPayload = new JSONObject();
         jsonPayload.put("app_username", appUsername);
         jsonPayload.put("app_password", appPassword);
@@ -35,113 +26,116 @@ public class ApiClient {
 
         RequestBody body = RequestBody.create(jsonPayload.toString(), JSON);
         Request request = new Request.Builder()
-                .url(baseUrl + "/api/register")
+                .url(BASE_URL + "/api/register")
                 .post(body)
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                throw new Exception("Registration failed: " + response.code() + " - " + response.body().string());
-            }
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+            return new JSONObject(response.body().string());
         }
     }
 
-    public JSONObject loginToMyBackend(String appUsername, String appPassword) throws Exception {
+    public JSONObject loginToMyBackend(String appUsername, String appPassword) throws IOException, JSONException {
         JSONObject jsonPayload = new JSONObject();
         jsonPayload.put("app_username", appUsername);
         jsonPayload.put("app_password", appPassword);
 
         RequestBody body = RequestBody.create(jsonPayload.toString(), JSON);
         Request request = new Request.Builder()
-                .url(baseUrl + "/api/login")
+                .url(BASE_URL + "/api/login")
                 .post(body)
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                throw new Exception("Login failed: " + response.code() + " - " + response.body().string());
+                Log.e("ApiClient", "Login failed: " + response.code() + " - " + response.body().string());
+                throw new IOException("Login failed with code: " + response.code());
             }
-            String responseBody = response.body().string();
-            return new JSONObject(responseBody);
+            return new JSONObject(response.body().string());
+        }
+    }
+
+    public JSONObject getAgents(String token, String appUsername) throws IOException, JSONException {
+        JSONObject jsonPayload = new JSONObject();
+        jsonPayload.put("app_username", appUsername);
+
+        RequestBody body = RequestBody.create(jsonPayload.toString(), JSON);
+        Request request = new Request.Builder()
+                .url(BASE_URL + "/api/agents")
+                .post(body)
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response + " " + response.body().string());
+            return new JSONObject(response.body().string());
+        }
+    }
+
+    public JSONObject getDashboardSummary(String token, String appUsername) throws IOException, JSONException {
+        JSONObject jsonPayload = new JSONObject();
+        jsonPayload.put("app_username", appUsername);
+
+        RequestBody body = RequestBody.create(jsonPayload.toString(), JSON);
+        Request request = new Request.Builder()
+                .url(BASE_URL + "/api/dashboard")
+                .post(body)
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response + " " + response.body().string());
+            return new JSONObject(response.body().string());
+        }
+    }
+
+    public void sendFcmToken(String token, String appUsername, String fcmToken) throws IOException {
+        JSONObject jsonPayload = new JSONObject();
+        try {
+            jsonPayload.put("app_username", appUsername);
+            jsonPayload.put("fcm_token", fcmToken);
         } catch (JSONException e) {
-            throw new Exception("Failed to parse login response: " + e.getMessage());
+            e.printStackTrace();
         }
-    }
-
-    public void sendFcmToken(String sessionToken, String appUsername, String fcmToken) throws Exception {
-        JSONObject jsonPayload = new JSONObject();
-        jsonPayload.put("app_username", appUsername);
-        jsonPayload.put("fcm_token", fcmToken);
 
         RequestBody body = RequestBody.create(jsonPayload.toString(), JSON);
         Request request = new Request.Builder()
-                .url(baseUrl + "/api/fcm_token")
-                .header("Authorization", "Bearer " + sessionToken)
+                .url(BASE_URL + "/api/fcm_token")
                 .post(body)
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                // Tidak melempar exception agar aplikasi tidak crash jika gagal
-                System.err.println("Failed to send FCM token: " + response.code() + " - " + response.body().string());
+                Log.e("ApiClient", "Failed to send FCM token: " + response.body().string());
             } else {
-                System.out.println("FCM token sent successfully.");
+                Log.d("ApiClient", "FCM token sent successfully.");
             }
         }
     }
 
-    private JSONObject sendPostRequest(String endpoint, String sessionToken) throws Exception {
-        RequestBody body = RequestBody.create("{}", JSON); // Empty body for POST
-        Request request = new Request.Builder()
-                .url(baseUrl + endpoint)
-                .header("Authorization", "Bearer " + sessionToken)
-                .post(body)
-                .build();
-
-        try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                throw new IOException("Unexpected code " + response + " - " + response.body().string());
-            }
-            return new JSONObject(response.body().string());
-        }
-    }
-
-    public JSONObject getAgents(String sessionToken, String appUsername) throws Exception {
+    // ===============================================
+    // === METODE BARU UNTUK TAHAP 3: AI SUMMARY ===
+    // ===============================================
+    public JSONObject getAiSummary(String token, String appUsername) throws IOException, JSONException {
         JSONObject jsonPayload = new JSONObject();
         jsonPayload.put("app_username", appUsername);
+
         RequestBody body = RequestBody.create(jsonPayload.toString(), JSON);
         Request request = new Request.Builder()
-                .url(baseUrl + "/api/agents")
-                .header("Authorization", "Bearer " + sessionToken)
+                .url(BASE_URL + "/api/ai_summary")
                 .post(body)
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
                 .build();
+
         try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                throw new Exception("Failed to fetch agents: " + response.body().string());
-            }
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response + " " + response.body().string());
             return new JSONObject(response.body().string());
         }
-    }
-
-    public JSONObject getDashboardSummary(String sessionToken, String appUsername) throws Exception {
-        JSONObject jsonPayload = new JSONObject();
-        jsonPayload.put("app_username", appUsername);
-        RequestBody body = RequestBody.create(jsonPayload.toString(), JSON);
-        Request request = new Request.Builder()
-                .url(baseUrl + "/api/dashboard")
-                .header("Authorization", "Bearer " + sessionToken)
-                .post(body)
-                .build();
-        try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                throw new Exception("Failed to fetch dashboard summary: " + response.body().string());
-            }
-            return new JSONObject(response.body().string());
-        }
-    }
-
-    public JSONObject getAiSummary(String sessionToken) throws Exception {
-        return sendPostRequest("/api/ai_summary", sessionToken);
     }
 }
-
