@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "92602926413",
+    "project_id": "wazuh-mobile-e8e28",
+    "storage_bucket": "wazuh-mobile-e8e28.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:92602926413:android:889661a39350fee002a304",
+        "android_client_info": {
+          "package_name": "com.wazuh.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCdFiobheHd8BHQSCarEcgGXCkKAY--c6Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

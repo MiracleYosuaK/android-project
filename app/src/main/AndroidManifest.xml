@@ -6,6 +6,11 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+     <!-- Izin untuk Internet -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Izin untuk Notifikasi (wajib untuk Android 13+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -16,6 +21,14 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.WazuhMobile"
         tools:targetApi="31">
+        <!-- Daftarkan Firebase Messaging Service -->
+        <service
+            android:name=".MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
 
         <activity
             android:name=".SplashActivity"

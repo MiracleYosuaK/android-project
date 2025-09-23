@@ -63,6 +63,14 @@
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
                         android:orientation="horizontal">
+                        <TextView
+                            android:id="@+id/tvGreetingUser"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/soc_analyst"
+                            android:textColor="@color/text_white"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
 
                         <!-- Sync Button -->
                         <ImageButton
@@ -230,6 +238,14 @@
                 android:paddingHorizontal="16dp"
                 android:paddingBottom="16dp">
                 <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/high_priority_alerts"
+                    android:textAppearance="@style/TextAppearance.WazuhMobile.Body1"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp" />
+                <TextView
+                    android:id="@+id/tvHighPriorityAlertsHeader"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/high_priority_alerts"
