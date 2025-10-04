@@ -26,7 +26,7 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "BACKEND_BASE_URL", "\"https://d6c2816e9548.ngrok-free.app\"")
+            buildConfigField("String", "BACKEND_BASE_URL", "\"https://657a214d542e.ngrok-free.app\"")
         }
         release {
             minifyEnabled true

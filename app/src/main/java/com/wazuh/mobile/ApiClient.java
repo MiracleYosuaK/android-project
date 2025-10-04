@@ -4,12 +4,19 @@ import android.util.Log;
 import okhttp3.*;
 import org.json.JSONException;
 import org.json.JSONObject;
+import java.util.concurrent.TimeUnit;
 
 import java.io.IOException;
 
 public class ApiClient {
     private final String BASE_URL = BuildConfig.BACKEND_BASE_URL;
-    private final OkHttpClient client = new OkHttpClient();
+
+    private final OkHttpClient client = new OkHttpClient.Builder()
+            .readTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .build();
+
+//    private final OkHttpClient client = new OkHttpClient();
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
     public JSONObject register(String appUsername, String appPassword, String wazuhUsername, String wazuhPassword, String wazuhHost, String wazuhPort, String indexerUsername, String indexerPassword, String indexerPort) throws IOException, JSONException {
