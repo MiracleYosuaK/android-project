@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -64,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
 
         sharedPreferences = getSharedPreferences("WazuhPrefs", MODE_PRIVATE);
         apiClient = new ApiClient();
+        TextView tvAiStatus = findViewById(R.id.tv_ai_status);
 
         initializeViews();
         setupRecyclerViews();
@@ -72,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
 
         loadSessionAndData();
         askNotificationPermission();
+
     }
 
     private void initializeViews() {
@@ -89,8 +92,8 @@ public class MainActivity extends AppCompatActivity {
         mainScrollView = findViewById(R.id.mainScrollView);
 
         // Inisialisasi komponen UI AI
-        tvAiSummary = findViewById(R.id.tvAiSummary);
-        aiSummaryProgressBar = findViewById(R.id.aiSummaryProgressBar);
+        tvAiSummary = findViewById(R.id.tv_ai_summary_content); // ID baru untuk teks konten
+        aiSummaryProgressBar = findViewById(R.id.pb_ai_loading); // ID baru untuk loading
 
 
     }
@@ -129,35 +132,161 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void loadAllData() {
-        Log.d(TAG, "Starting to load all data...");
-        setLoadingState(true);
+//    private void loadAllData() {
+//        Log.d(TAG, "Starting to load all data...");
+//        setLoadingState(true);
+//
+//        new Thread(() -> {
+//            try {
+//                // Ambil data agen dan dashboard utama terlebih dahulu
+//                final JSONObject agentsResponse = apiClient.getAgents(sessionToken, appUsername);
+//                final JSONObject dashboardResponse = apiClient.getDashboardSummary(sessionToken, appUsername);
+//
+//                // Setelah data utama berhasil, baru minta AI summary
+//                final JSONObject aiSummaryResponse = apiClient.getAiSummary(sessionToken, appUsername);
+//
+//                // Update UI di main thread
+//                new Handler(Looper.getMainLooper()).post(() -> {
+//                    updateDashboardUI(dashboardResponse);
+//                    updateAgentsList(agentsResponse);
+//                    updateAiSummaryUI(aiSummaryResponse); // Metode baru untuk update UI AI
+//                    setLoadingState(false);
+//                });
+//
+//            } catch (IOException | JSONException e) {
+//                Log.e(TAG, "Failed to fetch data", e);
+//                new Handler(Looper.getMainLooper()).post(() -> {
+//                    Toast.makeText(MainActivity.this, "Error fetching data: " + e.getMessage(), Toast.LENGTH_LONG).show();
+//                    setLoadingState(false);
+//                });
+//            }
+//        }).start();
+//    }
+private void loadAllData() {
+    Log.d(TAG, "Starting to load all data...");
 
-        new Thread(() -> {
-            try {
-                // Ambil data agen dan dashboard utama terlebih dahulu
-                final JSONObject agentsResponse = apiClient.getAgents(sessionToken, appUsername);
-                final JSONObject dashboardResponse = apiClient.getDashboardSummary(sessionToken, appUsername);
+    // 1. Tampilkan Loading Awal
+    setLoadingState(true);
 
-                // Setelah data utama berhasil, baru minta AI summary
-                final JSONObject aiSummaryResponse = apiClient.getAiSummary(sessionToken, appUsername);
+    new Thread(() -> {
+        // --- BAGIAN 1: DATA UTAMA (CEPAT) ---
+        try {
+            // Ambil data dashboard & agent
+            final JSONObject agentsResponse = apiClient.getAgents(sessionToken, appUsername);
+            final JSONObject dashboardResponse = apiClient.getDashboardSummary(sessionToken, appUsername);
 
-                // Update UI di main thread
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    updateDashboardUI(dashboardResponse);
-                    updateAgentsList(agentsResponse);
-                    updateAiSummaryUI(aiSummaryResponse); // Metode baru untuk update UI AI
-                    setLoadingState(false);
-                });
+            // LANGSUNG UPDATE UI (Jangan tunggu AI)
+            new Handler(Looper.getMainLooper()).post(() -> {
+                updateDashboardUI(dashboardResponse);
+                updateAgentsList(agentsResponse);
 
-            } catch (IOException | JSONException e) {
-                Log.e(TAG, "Failed to fetch data", e);
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    Toast.makeText(MainActivity.this, "Error fetching data: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    setLoadingState(false);
-                });
-            }
-        }).start();
+                // Matikan loading utama, karena data utama sudah tampil
+                // Opsional: Anda bisa biarkan loading state true jika ingin memblokir layar total
+                // Tapi saran saya: set false disini, lalu kasih loading kecil khusus di kotak AI
+                setLoadingState(false);
+
+                // Kasih feedback visual kalau AI sedang bekerja
+                showAiLoadingState(true);
+            });
+
+        } catch (IOException | JSONException e) {
+            Log.e(TAG, "Failed to fetch Dashboard/Agents", e);
+            new Handler(Looper.getMainLooper()).post(() -> {
+                Toast.makeText(MainActivity.this, "Gagal ambil data Dashboard", Toast.LENGTH_SHORT).show();
+                setLoadingState(false);
+            });
+            return; // Stop jika dashboard utama gagal
+        }
+
+        // --- BAGIAN 2: DATA AI (LAMBAT) ---
+        // Ditaruh di try-catch terpisah supaya kalau error tidak merusak dashboard
+        try {
+            Log.d(TAG, "Fetching AI Summary...");
+            final JSONObject aiSummaryResponse = apiClient.getAiSummary(sessionToken, appUsername);
+
+            new Handler(Looper.getMainLooper()).post(() -> {
+                updateAiSummaryUI(aiSummaryResponse);
+                showAiLoadingState(false); // Matikan loading khusus AI
+            });
+
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to fetch AI", e);
+            new Handler(Looper.getMainLooper()).post(() -> {
+                // Jangan show Toast error besar, cukup tulis di kotak AI nya
+                showAiErrorState("AI Timeout/Gagal: " + e.getMessage());
+                showAiLoadingState(false);
+            });
+        }
+    }).start();
+}
+
+//    private void loadAllData() {
+//    // 1. Loading Awal Dashboard (Cepat)
+//    setLoadingState(true);
+//
+//    new Thread(() -> {
+//        // --- BAGIAN 1: DATA CEPAT ---
+//        try {
+//            final JSONObject dashboardData = apiClient.getDashboardSummary(sessionToken, appUsername);
+//            final JSONObject agentsData = apiClient.getAgents(sessionToken, appUsername);
+//
+//            new Handler(Looper.getMainLooper()).post(() -> {
+//                updateDashboardUI(dashboardData);
+//                updateAgentsList(agentsData);
+//                setLoadingState(false); // Dashboard selesai, matikan loading besar
+//
+//                // 2. NYALAKAN LOADING KHUSUS AI
+//                // Ini akan terus muter sampai request di bawah selesai/error
+//                showAiLoadingState(true);
+//            });
+//        } catch (Exception e) {
+//            // Error handling dashboard...
+//        }
+//
+//        // --- BAGIAN 2: DATA AI (LAMBAT - MAX 2 MENIT) ---
+//        try {
+//            // Baris ini akan MEMBLOKIR thread ini selama server berpikir.
+//            // Kalau server butuh 100 detik, dia diam disini 100 detik.
+//            // Kalau lewat 120 detik (sesuai settingan Step 1), dia error.
+//            final JSONObject aiData = apiClient.getAiSummary(sessionToken, appUsername);
+//
+//            new Handler(Looper.getMainLooper()).post(() -> {
+//                // Sukses!
+//                updateAiSummaryUI(aiData);
+//                showAiLoadingState(false); // Matikan loading AI
+//            });
+//
+//        } catch (Exception e) {
+//            Log.e(TAG, "AI Timeout/Error", e);
+//            new Handler(Looper.getMainLooper()).post(() -> {
+//                // Gagal (Timeout > 120 detik atau error lain)
+//                showAiErrorState("Gagal memuat AI: Waktu habis (Timeout).");
+//                showAiLoadingState(false); // Matikan loading AI
+//            });
+//        }
+//    }).start();
+//}
+
+    // Helper untuk UX yang lebih bagus
+    private void showAiLoadingState(boolean isLoading) {
+        // Misalnya di UI ada TextView di card AI bertuliskan "Sedang menganalisa..."
+        TextView aiStatusText = findViewById(R.id.tv_ai_status);
+        ProgressBar aiProgress = findViewById(R.id.pb_ai_loading);
+
+        if (isLoading) {
+            aiStatusText.setText("AI sedang menganalisa insiden...");
+            aiStatusText.setVisibility(View.VISIBLE);
+            aiProgress.setVisibility(View.VISIBLE);
+        } else {
+            aiStatusText.setVisibility(View.GONE);
+            aiProgress.setVisibility(View.GONE);
+        }
+    }
+
+    private void showAiErrorState(String message) {
+        TextView aiContent = findViewById(R.id.tv_ai_summary_content);
+        aiContent.setText(message);
+        aiContent.setTextColor(Color.RED);
     }
 
     private void setLoadingState(boolean isLoading) {

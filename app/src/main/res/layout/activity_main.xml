@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:background="@color/background_light">
 
-    <!-- Main Content -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/mainScrollView"
         android:layout_width="match_parent"
@@ -19,7 +18,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Header Section -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -58,7 +56,6 @@
                             android:textStyle="bold" />
                     </LinearLayout>
 
-                    <!-- Action Buttons -->
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -85,7 +82,6 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- API Status Cards -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -168,7 +164,6 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Statistics Section -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -240,7 +235,6 @@
                 </androidx.cardview.widget.CardView>
             </LinearLayout>
 
-            <!-- Agent Monitoring Section -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -263,7 +257,6 @@
                     android:nestedScrollingEnabled="false" />
             </LinearLayout>
 
-            <!-- AI Summary Section -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -289,7 +282,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:padding="16dp"
-                        android:minHeight="100dp">
+                        android:minHeight="120dp">
 
                         <LinearLayout
                             android:id="@+id/aiHeaderLayout"
@@ -320,7 +313,7 @@
                         </LinearLayout>
 
                         <TextView
-                            android:id="@+id/tvAiSummary"
+                            android:id="@+id/tv_ai_summary_content"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_below="@id/aiHeaderLayout"
@@ -329,21 +322,38 @@
                             android:textSize="14sp"
                             android:lineSpacingExtra="4dp" />
 
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:layout_centerInParent="true">
 
-                        <ProgressBar
-                            android:id="@+id/aiSummaryProgressBar"
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:layout_centerInParent="true"
-                            android:indeterminateTint="@color/white"
-                            android:visibility="gone"
-                            tools:visibility="visible"/>
+                            <ProgressBar
+                                android:id="@+id/pb_ai_loading"
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
+                                android:indeterminateTint="@color/white"
+                                android:visibility="gone"
+                                tools:visibility="visible"/>
+
+                            <TextView
+                                android:id="@+id/tv_ai_status"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Menganalisa data..."
+                                android:textColor="@color/white"
+                                android:textSize="12sp"
+                                android:alpha="0.8"
+                                android:layout_marginTop="8dp"
+                                android:visibility="gone"
+                                tools:visibility="visible"/>
+                        </LinearLayout>
 
                     </RelativeLayout>
                 </androidx.cardview.widget.CardView>
             </LinearLayout>
 
-            <!-- High Priority Alerts Section -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -381,7 +391,6 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"

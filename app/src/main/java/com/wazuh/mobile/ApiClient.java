@@ -2,15 +2,57 @@ package com.wazuh.mobile;
 
 import android.util.Log;
 import okhttp3.*;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.Collections; // Wajib ada
+import java.util.concurrent.TimeUnit;
 
 public class ApiClient {
+    // Pastikan build.gradle Anda sudah mendefinisikan BACKEND_BASE_URL
+    // Atau ganti manual string ini dengan URL server Anda (misal "http://192.168.1.X:5000")
     private final String BASE_URL = BuildConfig.BACKEND_BASE_URL;
-    private final OkHttpClient client = new OkHttpClient();
+
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
+
+    // ==========================================
+    // KONFIGURASI CLIENT (TIMEOUT & PROTOCOL)
+    // ==========================================
+    OkHttpClient client = new OkHttpClient.Builder()
+            // 1. Waktu maksimal untuk connect ke server
+            .connectTimeout(60, TimeUnit.SECONDS)
+
+            // 2. Waktu maksimal kirim data
+            .writeTimeout(60, TimeUnit.SECONDS)
+
+            // 3. [PENTING] Waktu maksimal NUNGGU respon (AI butuh waktu lama)
+            // Diset 120 detik (2 menit) agar loading berputar terus
+            .readTimeout(120, TimeUnit.SECONDS)
+
+            // 4. Auto reconnect jika gagal
+            .retryOnConnectionFailure(true)
+
+            // 5. [SOLUSI ERROR] Paksa pakai HTTP 1.1 untuk hindari "unexpected end of stream"
+            // Ini obat manjur untuk server Flask/Python
+            .protocols(Collections.singletonList(Protocol.HTTP_1_1))
+
+            .build();
+
+    // Inisialisasi Retrofit
+    Retrofit retrofit = new Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build();
+
+
+    // ==========================================
+    // DAFTAR ENDPOINT / METHOD
+    // ==========================================
 
     public JSONObject register(String appUsername, String appPassword, String wazuhUsername, String wazuhPassword, String wazuhHost, String wazuhPort, String indexerUsername, String indexerPassword, String indexerPort) throws IOException, JSONException {
         JSONObject jsonPayload = new JSONObject();
@@ -119,7 +161,7 @@ public class ApiClient {
     }
 
     // ===============================================
-    // === METODE BARU UNTUK TAHAP 3: AI SUMMARY ===
+    // === METODE KHUSUS AI (BUTUH WAKTU LAMA) ===
     // ===============================================
     public JSONObject getAiSummary(String token, String appUsername) throws IOException, JSONException {
         JSONObject jsonPayload = new JSONObject();
@@ -127,7 +169,7 @@ public class ApiClient {
 
         RequestBody body = RequestBody.create(jsonPayload.toString(), JSON);
         Request request = new Request.Builder()
-                .url(BASE_URL + "/api/ai_summary")
+                .url(BASE_URL + "/api/ai_summary") // Pastikan endpoint ini benar di Flask
                 .post(body)
                 .header("Authorization", "Bearer " + token)
                 .header("Content-Type", "application/json")
