@@ -63,8 +63,6 @@ public class LoginActivity extends AppCompatActivity {
     private void performLogin(String username, String password) {
         new Thread(() -> {
             try {
-                // === PERBAIKAN DI SINI ===
-                // Mengubah nama metode dari login() menjadi loginToMyBackend()
                 JSONObject response = apiClient.loginToMyBackend(username, password);
                 String sessionToken = response.getString("session_token");
 
@@ -78,17 +76,24 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void loginSuccess(String sessionToken, String username) {
-        // Simpan sesi ke SharedPreferences
-        SharedPreferences sharedPreferences = getSharedPreferences("WazuhPrefs", MODE_PRIVATE);
+        // === PERBAIKAN DI SINI (SAMAKAN DENGAN MAINACTIVITY) ===
+
+        // 1. Nama File: Ganti "WazuhPrefs" -> "WazuhSession"
+        SharedPreferences sharedPreferences = getSharedPreferences("WazuhSession", MODE_PRIVATE);
+
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putBoolean("is_logged_in", true);
-        editor.putString("session_token", sessionToken);
-        editor.putString("app_username", username);
+
+        // 2. Nama Key: Ganti "session_token" -> "token", "app_username" -> "username"
+        editor.putString("token", sessionToken);
+        editor.putString("username", username);
+
         editor.apply();
 
         Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show();
 
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        // Tambahkan flag ini biar pas di Main kalau tekan Back gak balik ke Login lagi
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
     }
@@ -99,4 +104,3 @@ public class LoginActivity extends AppCompatActivity {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 }
-

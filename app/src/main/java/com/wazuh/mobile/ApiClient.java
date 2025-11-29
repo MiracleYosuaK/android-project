@@ -180,4 +180,21 @@ public class ApiClient {
             return new JSONObject(response.body().string());
         }
     }
+    public JSONObject getEvents(String token, String appUsername) throws IOException, JSONException {
+        JSONObject jsonPayload = new JSONObject();
+        jsonPayload.put("app_username", appUsername);
+
+        RequestBody body = RequestBody.create(jsonPayload.toString(), JSON);
+        Request request = new Request.Builder()
+                .url(BASE_URL + "/api/events") // Endpoint baru
+                .post(body)
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+            return new JSONObject(response.body().string());
+        }
+    }
 }

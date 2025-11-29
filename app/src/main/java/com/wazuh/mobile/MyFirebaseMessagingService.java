@@ -2,12 +2,16 @@ package com.wazuh.mobile;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -21,14 +25,13 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
 
-        // Cek jika pesan mengandung payload notifikasi
+        // Cek jika pesan mengandung payload notifikasi dari server/worker
         if (remoteMessage.getNotification() != null) {
             String title = remoteMessage.getNotification().getTitle();
             String body = remoteMessage.getNotification().getBody();
             Log.d(TAG, "Notification Received: " + title);
 
-            createNotificationChannel();
-            showNotification(title, body);
+            sendNotification(title, body);
         }
     }
 
@@ -36,36 +39,49 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     public void onNewToken(@NonNull String token) {
         super.onNewToken(token);
         Log.d(TAG, "Refreshed FCM token: " + token);
-        // Di MainActivity, kita akan mengambil token ini dan mengirimnya ke server.
-        // Bisa juga dikirim dari sini jika diperlukan.
+        // Token ini nanti akan diambil oleh MainActivity saat login
     }
 
-    private void createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "Critical Alerts";
-            String description = "Channel for critical Wazuh alerts";
-            int importance = NotificationManager.IMPORTANCE_HIGH;
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
-            channel.setDescription(description);
+    private void sendNotification(String title, String messageBody) {
+        // 1. Siapkan Intent (Tujuan saat diklik)
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+        // --- BAGIAN PENTING: Titip Pesan untuk Buka Tab Alerts ---
+        intent.putExtra("TARGET_FRAGMENT", "ALERTS");
+        // ---------------------------------------------------------
+
+        // 2. Bungkus dalam PendingIntent
+        // FLAG_IMMUTABLE wajib untuk Android 12+
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
+                PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
+
+        // 3. Setup Suara & Channel
+        Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        // Buat Channel untuk Android Oreo ke atas
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
+                    "Critical Alerts",
+                    NotificationManager.IMPORTANCE_HIGH);
+            channel.setDescription("Notifikasi untuk alert Wazuh level tinggi");
             notificationManager.createNotificationChannel(channel);
         }
-    }
 
-    private void showNotification(String title, String body) {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notifications) // Anda perlu membuat ikon ini
-                .setContentTitle(title)
-                .setContentText(body)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setAutoCancel(true);
+        // 4. Rakit Notifikasi
+        NotificationCompat.Builder notificationBuilder =
+                new NotificationCompat.Builder(this, CHANNEL_ID)
+                        .setSmallIcon(R.drawable.ic_notifications) // Pastikan icon ini ada di drawable
+                        .setContentTitle(title)
+                        .setContentText(messageBody)
+                        .setAutoCancel(true) // Hilang saat diklik
+                        .setSound(defaultSoundUri)
+                        .setContentIntent(pendingIntent) // <--- Pasang "Pemicu" disini
+                        .setPriority(NotificationCompat.PRIORITY_HIGH);
 
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        // Izin notifikasi diperlukan untuk Android 13+
-        // Kita akan menangani permintaan izin di MainActivity
-        notificationManager.notify((int) System.currentTimeMillis(), builder.build());
+        // 5. Tembak Notifikasi
+        notificationManager.notify(0, notificationBuilder.build());
     }
 }
-
-
