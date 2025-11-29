@@ -18,7 +18,7 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
-        apiClient = new ApiClient();
+        apiClient = new ApiClient(this);
         initializeViews();
 
         btnRegister.setOnClickListener(v -> attemptRegister());

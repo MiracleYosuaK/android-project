@@ -3,23 +3,48 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="24dp"
-    android:gravity="center">
+    android:background="@color/background_light"
+    android:padding="20dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Pengaturan"
-        android:textSize="24sp"
+        android:text="Server Manager"
+        android:textSize="28sp"
         android:textStyle="bold"
         android:textColor="@color/text_primary"
-        android:layout_marginBottom="32dp"/>
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Kelola daftar server Wazuh yang dipantau."
+        android:textColor="@color/text_secondary"
+        android:layout_marginBottom="24dp"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvServers"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/btnAddServer"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="+ Tambah Server Baru"
+        android:backgroundTint="@color/text_primary"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        android:layout_marginBottom="12dp"/>
 
     <Button
         android:id="@+id/btnLogout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/logout"
-        android:backgroundTint="#FF4444"
+        android:text="Log Out"
+        android:backgroundTint="#FF5252"
         android:textColor="@color/white"/>
+
 </LinearLayout>

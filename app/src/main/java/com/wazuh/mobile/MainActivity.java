@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        apiClient = new ApiClient();
+        apiClient = new ApiClient(this);
 
         // Setup Loading Dialog
         progressDialog = new ProgressDialog(this);
