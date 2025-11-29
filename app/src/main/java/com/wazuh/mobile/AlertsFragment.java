@@ -103,7 +103,8 @@ public class AlertsFragment extends Fragment {
                         obj.optString("description"),
                         levelStr,
                         obj.optString("timeAgo"),
-                        severity
+                        severity,
+                        obj.optString("description")
                 ));
             }
 

@@ -1,82 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    style="@style/CardView.WazuhMobile"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginVertical="4dp">
+    android:orientation="vertical"
+    android:background="@color/white"
+    android:paddingVertical="8dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp">
+        android:paddingHorizontal="16dp">
 
-        <!-- Alert Severity Indicator -->
         <View
-            android:id="@+id/SeverityIndicator"
+            android:id="@+id/viewStrip"
             android:layout_width="4dp"
             android:layout_height="match_parent"
-            android:layout_marginEnd="12dp"
-            android:background="@color/alert_critical" />
+            android:background="#DC3545"
+            android:layout_marginEnd="12dp"/>
 
-        <!-- Alert Content -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <!-- Alert Header -->
+            <TextView
+                android:id="@+id/tvAlertTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Authentication Failure"
+                android:textStyle="bold"
+                android:textColor="#333333"
+                android:textSize="14sp"
+                android:maxLines="1"
+                android:ellipsize="end"/>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
+                android:layout_marginTop="4dp">
 
                 <TextView
-                    android:id="@+id/AlertLevel"
+                    android:id="@+id/tvAlertLevel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="CRITICAL • Level 15"
-                    android:textColor="@color/alert_critical"
-                    android:textSize="10sp"
+                    android:text="Lvl 12"
+                    android:textSize="12sp"
                     android:textStyle="bold"
-                    android:layout_weight="1" />
+                    android:textColor="#DC3545"/>
 
                 <TextView
-                    android:id="@+id/AlertTime"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="5 min ago"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="10sp" />
+                    android:text=" • "
+                    android:textColor="#AAAAAA"
+                    android:layout_marginHorizontal="4dp"/>
 
+                <TextView
+                    android:id="@+id/tvAlertSource"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Windows-Agent"
+                    android:textSize="12sp"
+                    android:textColor="#666666"/>
             </LinearLayout>
-
-            <!-- Alert Title -->
-            <TextView
-                android:id="@+id/AlertTitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Multiple Failed SSH Login Attempts"
-                android:textColor="@color/text_primary"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="4dp" />
-
-            <!-- Alert Description -->
-            <TextView
-                android:id="@+id/AlertDescription"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="25 failed login attempts detected from IP 185.234.xxx.xxx targeting root account on Web Server 01"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp"
-                android:lineSpacingExtra="2dp" />
-
         </LinearLayout>
 
+        <TextView
+            android:id="@+id/tvAlertTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="10m ago"
+            android:textSize="10sp"
+            android:textColor="#999999"
+            android:layout_gravity="top"/>
     </LinearLayout>
 
-</androidx.cardview.widget.CardView>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#EEEEEE"
+        android:layout_marginTop="8dp"/>
+</LinearLayout>

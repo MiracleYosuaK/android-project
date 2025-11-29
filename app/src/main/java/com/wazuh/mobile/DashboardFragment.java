@@ -167,7 +167,8 @@ public class DashboardFragment extends Fragment {
                             obj.optString("description"),
                             levelStr,
                             obj.optString("timeAgo"),
-                            severity
+                            severity,
+                            obj.optString("description")
                     ));
                 }
             }

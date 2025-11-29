@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/gradient_background"
+    android:padding="24dp">
+
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:background="#80FFFFFF"
+        android:layout_gravity="center"
+        android:layout_marginBottom="20dp"/>
+
+    <TextView
+        android:id="@+id/bsTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Event Title"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:layout_marginBottom="8dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:id="@+id/bsLevel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="LEVEL 12"
+            android:textStyle="bold"
+            android:textColor="#FF5252"
+            android:background="@drawable/badge_ai"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            android:layout_marginEnd="10dp"/>
+
+        <TextView
+            android:id="@+id/bsAgent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Agent: Windows"
+            android:textColor="#DDDDDD"
+            android:layout_gravity="center_vertical"/>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#30FFFFFF"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="FULL LOG DESCRIPTION:"
+        android:textColor="#AAAAAA"
+        android:textSize="12sp"
+        android:layout_marginBottom="8dp"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="150dp">
+        <TextView
+            android:id="@+id/bsDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Description goes here..."
+            android:textColor="@color/white"
+            android:lineSpacingExtra="4dp"
+            android:fontFamily="monospace"/>
+    </ScrollView>
+
+    <Button
+        android:id="@+id/bsBtnClose"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tutup"
+        android:backgroundTint="#33FFFFFF"
+        android:textColor="@color/white"
+        android:layout_marginTop="16dp"/>
+
+</LinearLayout>

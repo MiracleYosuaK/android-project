@@ -1,78 +1,43 @@
 package com.wazuh.mobile;
 
+import android.graphics.Color;
+
 public class Alert {
     private String title;
-    private String description;
+    private String agentName;
     private String level;
     private String timeAgo;
     private Severity severity;
+    private String fullDescription; // <--- Field Baru
 
     public enum Severity {
         CRITICAL, HIGH, MEDIUM, LOW
     }
 
-    public Alert(String title, String description, String level, String timeAgo, Severity severity) {
+    // Constructor Diupdate: Tambah parameter 'fullDescription' di akhir
+    public Alert(String title, String agentName, String level, String timeAgo, Severity severity, String fullDescription) {
         this.title = title;
-        this.description = description;
+        this.agentName = agentName;
         this.level = level;
         this.timeAgo = timeAgo;
         this.severity = severity;
+        this.fullDescription = fullDescription;
     }
 
-    // Getters
-    public String getTitle() {
-        return title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public String getLevel() {
-        return level;
-    }
-
-    public String getTimeAgo() {
-        return timeAgo;
-    }
-
-    public Severity getSeverity() {
-        return severity;
-    }
-
-    // Setters
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setLevel(String level) {
-        this.level = level;
-    }
-
-    public void setTimeAgo(String timeAgo) {
-        this.timeAgo = timeAgo;
-    }
-
-    public void setSeverity(Severity severity) {
-        this.severity = severity;
-    }
+    public String getTitle() { return title; }
+    public String getAgentName() { return agentName; }
+    public String getLevel() { return level; }
+    public String getTimeAgo() { return timeAgo; }
+    public Severity getSeverity() { return severity; }
+    public String getFullDescription() { return fullDescription; } // <--- Getter Baru
 
     public int getSeverityColor() {
         switch (severity) {
-            case CRITICAL:
-                return R.color.alert_critical;
-            case HIGH:
-                return R.color.alert_high;
-            case MEDIUM:
-                return R.color.alert_medium;
-            case LOW:
-                return R.color.alert_low;
-            default:
-                return R.color.alert_medium;
- }
-}
+            case CRITICAL: return Color.parseColor("#B71C1C");
+            case HIGH: return Color.parseColor("#E65100");
+            case MEDIUM: return Color.parseColor("#F57F17");
+            case LOW: return Color.parseColor("#2E7D32");
+            default: return Color.GRAY;
+        }
+    }
 }
