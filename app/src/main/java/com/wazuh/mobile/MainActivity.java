@@ -1,28 +1,40 @@
 package com.wazuh.mobile;
 
+import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = "MainActivity";
     public ApiClient apiClient;
     public String sessionToken;
     public String appUsername;
     private ProgressDialog progressDialog;
-    private BottomNavigationView bottomNav; // Diubah jadi global variable
+    private BottomNavigationView bottomNav;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // 1. Session Check
+        // 1. Session Check (Pakai WazuhSession sesuai LoginActivity)
         SharedPreferences prefs = getSharedPreferences("WazuhSession", MODE_PRIVATE);
         sessionToken = prefs.getString("token", null);
         appUsername = prefs.getString("username", null);
@@ -49,16 +61,12 @@ public class MainActivity extends AppCompatActivity {
             if (itemId == R.id.nav_dashboard) {
                 selectedFragment = new DashboardFragment();
             } else if (itemId == R.id.nav_alerts) {
-                // --- UPDATE: Sekarang arahkan ke AlertsFragment ---
                 selectedFragment = new AlertsFragment();
             } else if (itemId == R.id.nav_events) {
-                // Events belum ada, arahkan ke Dashboard sementara
-                selectedFragment = new DashboardFragment();
                 selectedFragment = new EventsFragment();
             } else if (itemId == R.id.nav_settings) {
                 selectedFragment = new SettingsFragment();
             }
-
 
             if (selectedFragment != null) {
                 loadFragment(selectedFragment);
@@ -66,24 +74,23 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
 
-        // 3. Cek Apakah Dibuka dari Notifikasi?
-        // Jika ada pesan "TARGET_FRAGMENT" = "ALERTS", langsung buka tab Alerts
+        // 3. Logic Intent (Buka dari Notif)
         if (getIntent() != null && "ALERTS".equals(getIntent().getStringExtra("TARGET_FRAGMENT"))) {
             bottomNav.setSelectedItemId(R.id.nav_alerts);
         } else if (savedInstanceState == null) {
-            // Default: Buka Dashboard
             loadFragment(new DashboardFragment());
         }
+
+        // 4. WAJIB: Minta Izin & Update Token Notifikasi
+        askNotificationPermission();
     }
 
-    // Method Helper biar kodingan rapi
     private void loadFragment(Fragment fragment) {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, fragment)
                 .commit();
     }
 
-    // Handle jika aplikasi sudah terbuka di background lalu notif diklik
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -96,5 +103,56 @@ public class MainActivity extends AppCompatActivity {
     public void setLoadingState(boolean isLoading) {
         if (isLoading) progressDialog.show();
         else progressDialog.dismiss();
+    }
+
+    // =================================================================
+    // LOGIC NOTIFIKASI & TOKEN (DULU HILANG, SEKARANG ADA LAGI)
+    // =================================================================
+
+    private final ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    getAndSendFcmToken();
+                } else {
+                    Toast.makeText(this, "Notifikasi dimatikan. Anda tidak akan menerima alert.", Toast.LENGTH_LONG).show();
+                }
+            });
+
+    private void askNotificationPermission() {
+        // Android 13+ butuh izin runtime
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
+                    PackageManager.PERMISSION_GRANTED) {
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+            } else {
+                getAndSendFcmToken();
+            }
+        } else {
+            // Android lama langsung gas
+            getAndSendFcmToken();
+        }
+    }
+
+    private void getAndSendFcmToken() {
+        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) {
+                Log.w(TAG, "Gagal ambil token FCM", task.getException());
+                return;
+            }
+            String token = task.getResult();
+            Log.d(TAG, "Token FCM Baru: " + token);
+            sendTokenToServer(token);
+        });
+    }
+
+    private void sendTokenToServer(String fcmToken) {
+        new Thread(() -> {
+            try {
+                // Pastikan ApiClient punya method ini!
+                apiClient.sendFcmToken(sessionToken, appUsername, fcmToken);
+            } catch (Exception e) {
+                Log.e(TAG, "Gagal kirim token ke server", e);
+            }
+        }).start();
     }
 }

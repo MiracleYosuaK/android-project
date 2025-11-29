@@ -4,35 +4,34 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class SplashActivity extends AppCompatActivity {
-
-    private static final int SPLASH_DELAY = 2000; // 2 detik
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            // Periksa status login
-            SharedPreferences sharedPreferences = getSharedPreferences("WazuhPrefs", MODE_PRIVATE);
-            boolean isLoggedIn = sharedPreferences.getBoolean("is_logged_in", false);
+        // Delay 2 detik agar logo terlihat
+        new Handler().postDelayed(() -> {
+            // 1. Cek Laci yang BENAR ("WazuhSession")
+            SharedPreferences prefs = getSharedPreferences("WazuhSession", MODE_PRIVATE);
+
+            // 2. Cek Kunci yang BENAR ("token")
+            String token = prefs.getString("token", null);
 
             Intent intent;
-            if (isLoggedIn) {
-                // Jika sudah login, langsung ke MainActivity
+            if (token != null) {
+                // Kalau ada token, langsung ke Dashboard
                 intent = new Intent(SplashActivity.this, MainActivity.class);
             } else {
-                // Jika belum, ke WelcomeActivity
+                // Kalau tidak ada, ke Welcome/Login
                 intent = new Intent(SplashActivity.this, WelcomeActivity.class);
             }
 
             startActivity(intent);
-            finish();
-        }, SPLASH_DELAY);
+            finish(); // Tutup Splash agar tidak bisa di-back
+        }, 2000);
     }
 }
-
