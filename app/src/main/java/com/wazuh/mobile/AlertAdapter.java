@@ -14,7 +14,15 @@ public class AlertAdapter extends RecyclerView.Adapter<AlertAdapter.ViewHolder> 
     private final Context context;
     private List<Alert> alerts;
     private final OnItemClickListener listener; // <--- Listener Baru
+// ... kode adapter yang lama ...
 
+    // TAMBAHKAN METHOD INI AGAR BISA FILTER
+    public void updateList(List<Alert> newAlerts) {
+        this.alerts = newAlerts;
+        notifyDataSetChanged();
+    }
+
+    // ... sisanya sama ...
     // Interface untuk komunikasi ke Fragment
     public interface OnItemClickListener {
         void onItemClick(Alert alert);

@@ -20,10 +20,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -149,7 +147,6 @@ public class DashboardFragment extends Fragment {
                 for (int i = 0; i < alertsArray.length(); i++) {
                     JSONObject obj = alertsArray.getJSONObject(i);
 
-                    // --- FIX 1: Konversi Level ke Enum Severity ---
                     String levelStr = obj.optString("level", "0");
                     int level = Integer.parseInt(levelStr);
                     Alert.Severity severity;
@@ -159,16 +156,15 @@ public class DashboardFragment extends Fragment {
                     else if (level >= 4) severity = Alert.Severity.MEDIUM;
                     else severity = Alert.Severity.LOW;
 
-                    // --- FIX 2: Masukkan ke Constructor yang Benar ---
-                    // Constructor: (Title, Description, Level, TimeAgo, Severity)
-                    // Note: 'credential_name' dibuang karena Model Alert.java Anda tidak punya field itu.
+                    // Masukkan 7 Parameter sesuai Alert.java
                     alertList.add(new Alert(
-                            obj.optString("title"),
-                            obj.optString("description"),
-                            levelStr,
-                            obj.optString("timeAgo"),
-                            severity,
-                            obj.optString("description")
+                            obj.optString("title"),                 // 1. Title
+                            "System",                               // 2. Agent Name (Default)
+                            levelStr,                               // 3. Level
+                            obj.optString("timeAgo"),               // 4. Time
+                            severity,                               // 5. Severity
+                            obj.optString("description"),           // 6. Full Description
+                            obj.optString("credential_name")        // 7. Source Server
                     ));
                 }
             }
@@ -180,7 +176,7 @@ public class DashboardFragment extends Fragment {
                 tvNoHighPriorityAlerts.setVisibility(View.GONE);
                 rvAlerts.setVisibility(View.VISIBLE);
 
-                // --- FIX 3: Tambahkan getContext() ---
+                // Gunakan getContext() untuk inisialisasi Adapter
                 AlertAdapter adapter = new AlertAdapter(getContext(), alertList);
                 rvAlerts.setAdapter(adapter);
             }
@@ -200,16 +196,16 @@ public class DashboardFragment extends Fragment {
                 for (int i = 0; i < agentsArray.length(); i++) {
                     JSONObject obj = agentsArray.getJSONObject(i);
 
-                    // --- FIX 4: Konversi Status String ke Enum ---
+                    // Konversi Status String ke Enum
                     String statusStr = obj.optString("status", "disconnected");
                     Agent.Status status = "active".equalsIgnoreCase(statusStr)
                             ? Agent.Status.ACTIVE
                             : Agent.Status.INACTIVE;
 
-                    // --- FIX 5: Default Type (Karena JSON mungkin tidak kirim type) ---
+                    // Default Type
                     Agent.Type type = Agent.Type.SERVER;
 
-                    // Constructor: (Name, IpAddress, Status, Type)
+                    // Constructor Agent
                     agentList.add(new Agent(
                             obj.optString("name"),
                             obj.optString("ip"),
@@ -219,7 +215,7 @@ public class DashboardFragment extends Fragment {
                 }
             }
 
-            // --- FIX 6: Tambahkan getContext() ---
+            // Gunakan getContext() untuk inisialisasi Adapter
             AgentAdapter adapter = new AgentAdapter(getContext(), agentList);
             rvAgents.setAdapter(adapter);
 

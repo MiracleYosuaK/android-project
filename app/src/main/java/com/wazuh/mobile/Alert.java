@@ -8,28 +8,32 @@ public class Alert {
     private String level;
     private String timeAgo;
     private Severity severity;
-    private String fullDescription; // <--- Field Baru
+    private String fullDescription;
+    private String sourceServer; // <--- FIELD KE-7
 
     public enum Severity {
         CRITICAL, HIGH, MEDIUM, LOW
     }
 
-    // Constructor Diupdate: Tambah parameter 'fullDescription' di akhir
-    public Alert(String title, String agentName, String level, String timeAgo, Severity severity, String fullDescription) {
+    // Constructor Wajib 7 Parameter
+    public Alert(String title, String agentName, String level, String timeAgo, Severity severity, String fullDescription, String sourceServer) {
         this.title = title;
         this.agentName = agentName;
         this.level = level;
         this.timeAgo = timeAgo;
         this.severity = severity;
         this.fullDescription = fullDescription;
+        this.sourceServer = sourceServer;
     }
 
+    // Getters
     public String getTitle() { return title; }
     public String getAgentName() { return agentName; }
     public String getLevel() { return level; }
     public String getTimeAgo() { return timeAgo; }
     public Severity getSeverity() { return severity; }
-    public String getFullDescription() { return fullDescription; } // <--- Getter Baru
+    public String getFullDescription() { return fullDescription; }
+    public String getSourceServer() { return sourceServer; }
 
     public int getSeverityColor() {
         switch (severity) {

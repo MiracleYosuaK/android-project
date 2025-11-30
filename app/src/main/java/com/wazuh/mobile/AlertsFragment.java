@@ -89,7 +89,6 @@ public class AlertsFragment extends Fragment {
             for (int i = 0; i < alertsArray.length(); i++) {
                 JSONObject obj = alertsArray.optJSONObject(i);
 
-                // Konversi Level
                 String levelStr = obj.optString("level", "0");
                 int level = Integer.parseInt(levelStr);
                 Alert.Severity severity;
@@ -98,13 +97,15 @@ public class AlertsFragment extends Fragment {
                 else if (level >= 4) severity = Alert.Severity.MEDIUM;
                 else severity = Alert.Severity.LOW;
 
+                // --- PERBAIKAN DISINI (7 PARAMETER) ---
                 alertList.add(new Alert(
-                        obj.optString("title"),
-                        obj.optString("description"),
-                        levelStr,
-                        obj.optString("timeAgo"),
-                        severity,
-                        obj.optString("description")
+                        obj.optString("title"),                 // 1. Title
+                        "System",                               // 2. Agent Name
+                        levelStr,                               // 3. Level
+                        obj.optString("timeAgo"),               // 4. Time
+                        severity,                               // 5. Severity
+                        obj.optString("description"),           // 6. Full Description
+                        obj.optString("credential_name")        // 7. Source Server
                 ));
             }
 
