@@ -15,18 +15,30 @@
 
         <TextView
             android:id="@+id/tvTitle"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
+            android:layout_marginEnd="8dp"
             android:text="@string/create_account"
             android:textColor="#2D3B48"
             android:textSize="28sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/btnHelp" />
 
-        <!-- Application Credentials Section -->
+        <ImageButton
+            android:id="@+id/btnHelp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@android:drawable/ic_menu_help"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="#00695C"
+            android:contentDescription="Server Config Help"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/tvTitle"
+            app:layout_constraintBottom_toBottomOf="@id/tvTitle" />
+
         <TextView
             android:id="@+id/tvAppCreds"
             android:layout_width="wrap_content"
@@ -39,31 +51,42 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvTitle" />
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etAppUsername"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilAppUsername"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:hint="@string/app_username"
-            android:inputType="text"
-            android:padding="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvAppCreds" />
+            app:layout_constraintTop_toBottomOf="@id/tvAppCreds">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etAppPassword"
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etAppUsername"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/app_username"
+                android:inputType="text"
+                android:padding="16dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilAppPassword"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="@string/app_password"
-            android:inputType="textPassword"
-            android:padding="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/etAppUsername" />
+            app:layout_constraintTop_toBottomOf="@id/tilAppUsername">
 
-        <!-- Wazuh API Credentials Section -->
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etAppPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/app_password"
+                android:inputType="textPassword"
+                android:padding="16dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
         <TextView
             android:id="@+id/tvWazuhCreds"
             android:layout_width="wrap_content"
@@ -74,57 +97,80 @@
             android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/etAppPassword" />
+            app:layout_constraintTop_toBottomOf="@id/tilAppPassword" />
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etWazuhUsername"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilWazuhUsername"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:hint="@string/wazuh_api_username"
-            android:inputType="text"
-            android:padding="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvWazuhCreds" />
+            app:layout_constraintTop_toBottomOf="@id/tvWazuhCreds">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etWazuhPassword"
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etWazuhUsername"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/wazuh_api_username"
+                android:inputType="text"
+                android:padding="16dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilWazuhPassword"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="@string/wazuh_api_password"
-            android:inputType="textPassword"
-            android:padding="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/etWazuhUsername" />
+            app:layout_constraintTop_toBottomOf="@id/tilWazuhUsername">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etWazuhHost"
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etWazuhPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/wazuh_api_password"
+                android:inputType="textPassword"
+                android:padding="16dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilWazuhHost"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="@string/wazuh_host"
-            android:inputType="textUri"
-            android:padding="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/etWazuhPassword" />
+            app:layout_constraintTop_toBottomOf="@id/tilWazuhPassword">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etWazuhPort"
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etWazuhHost"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/wazuh_host"
+                android:inputType="textUri"
+                android:padding="16dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilWazuhPort"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="@string/wazuh_port"
-            android:inputType="number"
-            android:padding="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/etWazuhHost" />
+            app:layout_constraintTop_toBottomOf="@id/tilWazuhHost">
 
-        <!-- WAZUH INDEXER CREDENTIALS SECTION (BARU) -->
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etWazuhPort"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/wazuh_port"
+                android:inputType="number"
+                android:padding="16dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
         <TextView
             android:id="@+id/tvIndexerCreds"
             android:layout_width="wrap_content"
@@ -135,46 +181,62 @@
             android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/etWazuhPort" />
+            app:layout_constraintTop_toBottomOf="@id/tilWazuhPort" />
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etIndexerUsername"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilIndexerUsername"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:hint="@string/wazuh_indexer_username"
-            android:inputType="text"
-            android:padding="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvIndexerCreds" />
+            app:layout_constraintTop_toBottomOf="@id/tvIndexerCreds">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etIndexerPassword"
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etIndexerUsername"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/wazuh_indexer_username"
+                android:inputType="text"
+                android:padding="16dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilIndexerPassword"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="@string/wazuh_indexer_password"
-            android:inputType="textPassword"
-            android:padding="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/etIndexerUsername" />
+            app:layout_constraintTop_toBottomOf="@id/tilIndexerUsername">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etIndexerPort"
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etIndexerPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/wazuh_indexer_password"
+                android:inputType="textPassword"
+                android:padding="16dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilIndexerPort"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="@string/wazuh_indexer_port"
-            android:inputType="number"
-            android:padding="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/etIndexerPassword" />
+            app:layout_constraintTop_toBottomOf="@id/tilIndexerPassword">
 
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etIndexerPort"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/wazuh_indexer_port"
+                android:inputType="number"
+                android:padding="16dp" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Register Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRegister"
             android:layout_width="0dp"
@@ -184,8 +246,7 @@
             android:text="@string/register"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/etIndexerPort" />
+            app:layout_constraintTop_toBottomOf="@id/tilIndexerPort" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>
-

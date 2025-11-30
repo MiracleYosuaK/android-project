@@ -68,7 +68,7 @@ public class SettingsFragment extends Fragment {
                 if (getActivity() != null) {
                     SharedPreferences prefs = getActivity().getSharedPreferences("WazuhSession", Context.MODE_PRIVATE);
                     prefs.edit().clear().apply();
-                    Intent intent = new Intent(getActivity(), LoginActivity.class);
+                    Intent intent = new Intent(getActivity(), WelcomeActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
                 }

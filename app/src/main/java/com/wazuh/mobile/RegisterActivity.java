@@ -1,16 +1,24 @@
 package com.wazuh.mobile;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.text.Html;
 import android.text.TextUtils;
+import android.util.Log;
+import android.widget.ImageButton;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 
 public class RegisterActivity extends AppCompatActivity {
+
+    private static final String TAG = "RegisterActivity";
     private TextInputEditText etAppUsername, etAppPassword, etWazuhUsername, etWazuhPassword,
             etWazuhHost, etWazuhPort, etIndexerUsername, etIndexerPassword, etIndexerPort;
     private MaterialButton btnRegister;
+    private ImageButton btnHelp; // Tombol Help
     private ApiClient apiClient;
 
     @Override
@@ -22,6 +30,9 @@ public class RegisterActivity extends AppCompatActivity {
         initializeViews();
 
         btnRegister.setOnClickListener(v -> attemptRegister());
+
+        // Listener Tombol Help
+        btnHelp.setOnClickListener(v -> showTutorialDialog());
     }
 
     private void initializeViews() {
@@ -33,8 +44,36 @@ public class RegisterActivity extends AppCompatActivity {
         etWazuhPort = findViewById(R.id.etWazuhPort);
         etIndexerUsername = findViewById(R.id.etIndexerUsername);
         etIndexerPassword = findViewById(R.id.etIndexerPassword);
-        etIndexerPort = findViewById(R.id.etIndexerPort); // Inisialisasi view baru
+        etIndexerPort = findViewById(R.id.etIndexerPort);
+
         btnRegister = findViewById(R.id.btnRegister);
+        btnHelp = findViewById(R.id.btnHelp); // Bind tombol help dari layout
+    }
+
+    // --- METHOD TUTORIAL (YANG TADI) ---
+    private void showTutorialDialog() {
+        String tutorialText =
+                "<b>SERVER CONFIGURATION GUIDE</b><br><br>" +
+                        "To use this app, your Wazuh Indexer must accept requests from the application server.<br><br>" +
+
+                        "<b>1. Configure Network Host</b><br>" +
+                        "Edit the configuration file:<br>" +
+                        "<tt>nano /etc/wazuh-indexer/opensearch.yml</tt><br>" +
+                        "Change the network host line to:<br>" +
+                        "<font color='#00695C'><tt>network.host: \"0.0.0.0\"</tt></font><br><br>" +
+
+                        "<b>2. Get Credentials (Single Node)</b><br>" +
+                        "For <b>Wazuh API</b> credentials, run:<br>" +
+                        "<tt><small>tar -axf wazuh-install-files.tar wazuh-install-files/wazuh-passwords.txt -O | grep -P \"'wazuh'\" -A 1</small></tt><br><br>" +
+
+                        "For <b>Indexer</b> credentials, run:<br>" +
+                        "<tt><small>tar -axf wazuh-install-files.tar wazuh-install-files/wazuh-passwords.txt -O | grep -P \"'admin'\" -A 1</small></tt>";
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("How to Connect")
+                .setMessage(Html.fromHtml(tutorialText, Html.FROM_HTML_MODE_LEGACY))
+                .setPositiveButton("Understood", null)
+                .show();
     }
 
     private void attemptRegister() {
@@ -46,9 +85,9 @@ public class RegisterActivity extends AppCompatActivity {
         String wazuhPort = etWazuhPort.getText().toString().trim();
         String indexerUsername = etIndexerUsername.getText().toString().trim();
         String indexerPassword = etIndexerPassword.getText().toString().trim();
-        String indexerPort = etIndexerPort.getText().toString().trim(); // Ambil data dari view baru
+        String indexerPort = etIndexerPort.getText().toString().trim();
 
-        // Validasi semua field, termasuk port baru
+        // Validasi
         if (TextUtils.isEmpty(appUsername) || TextUtils.isEmpty(appPassword) ||
                 TextUtils.isEmpty(wazuhUsername) || TextUtils.isEmpty(wazuhPassword) ||
                 TextUtils.isEmpty(wazuhHost) || TextUtils.isEmpty(wazuhPort) ||
@@ -63,13 +102,20 @@ public class RegisterActivity extends AppCompatActivity {
 
         new Thread(() -> {
             try {
-                // Panggil metode register dengan semua argumen, termasuk port baru
-                apiClient.register(appUsername, appPassword, wazuhUsername, wazuhPassword, wazuhHost, wazuhPort, indexerUsername, indexerPassword, indexerPort);
+                // Panggil API Register (Sekarang pakai port dari input user)
+                apiClient.register(
+                        appUsername, appPassword,
+                        wazuhUsername, wazuhPassword, wazuhHost, wazuhPort,
+                        indexerUsername, indexerPassword, indexerPort
+                );
+
                 runOnUiThread(() -> {
                     Toast.makeText(this, "Registration successful!", Toast.LENGTH_SHORT).show();
-                    finish();
+                    finish(); // Kembali ke Login atau halaman sebelumnya
                 });
+
             } catch (Exception e) {
+                Log.e(TAG, "Register Error", e);
                 runOnUiThread(() -> {
                     Toast.makeText(this, "Registration failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     btnRegister.setText("Register");
@@ -79,5 +125,3 @@ public class RegisterActivity extends AppCompatActivity {
         }).start();
     }
 }
-
-    
