@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -32,8 +33,11 @@ public class SettingsFragment extends Fragment {
     private ApiClient apiClient;
     private String sessionToken;
     private String appUsername;
+
+    // UI Components
     private RecyclerView rvServers;
-    private Button btnAddServer, btnLogout;
+    private Button btnAddServer, btnLogout, btnSaveSeverity;
+    private EditText etMinSeverity;
 
     @Nullable
     @Override
@@ -47,43 +51,82 @@ public class SettingsFragment extends Fragment {
             this.appUsername = mainActivity.appUsername;
         }
 
-        // Binding Views (Pastikan ID di XML ada!)
+        // Binding Views
         rvServers = view.findViewById(R.id.rvServers);
         btnAddServer = view.findViewById(R.id.btnAddServer);
         btnLogout = view.findViewById(R.id.btnLogout);
+        etMinSeverity = view.findViewById(R.id.etMinSeverity);
+        btnSaveSeverity = view.findViewById(R.id.btnSaveSeverity);
 
         // Setup RecyclerView
-        if (rvServers != null) {
-            rvServers.setLayoutManager(new LinearLayoutManager(getContext()));
-            loadServers();
-        }
+        rvServers.setLayoutManager(new LinearLayoutManager(getContext()));
+        loadServers();
+
+        // Load Saved Severity
+        SharedPreferences prefs = requireActivity().getSharedPreferences("WazuhSession", Context.MODE_PRIVATE);
+        int savedSeverity = prefs.getInt("min_severity", 12);
+        etMinSeverity.setText(String.valueOf(savedSeverity));
 
         // Listeners
-        if (btnAddServer != null) {
-            btnAddServer.setOnClickListener(v -> showAddServerDialog());
-        }
+        btnAddServer.setOnClickListener(v -> showAddServerDialog());
 
-        if (btnLogout != null) {
-            btnLogout.setOnClickListener(v -> {
-                if (getActivity() != null) {
-                    SharedPreferences prefs = getActivity().getSharedPreferences("WazuhSession", Context.MODE_PRIVATE);
-                    prefs.edit().clear().apply();
-                    Intent intent = new Intent(getActivity(), WelcomeActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-                }
-            });
-        }
+        btnSaveSeverity.setOnClickListener(v -> saveSeveritySettings());
+
+        btnLogout.setOnClickListener(v -> {
+            if (getActivity() != null) {
+                prefs.edit().clear().apply();
+                Intent intent = new Intent(getActivity(), LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+            }
+        });
 
         return view;
     }
 
+    // --- LOGIC 1: NOTIFIKASI SEVERITY ---
+    private void saveSeveritySettings() {
+        String valStr = etMinSeverity.getText().toString().trim();
+        if (valStr.isEmpty()) return;
+
+        int newVal = Integer.parseInt(valStr);
+        if (newVal < 1 || newVal > 15) {
+            Toast.makeText(getContext(), "Level harus 1-15", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Simpan ke Lokal
+        SharedPreferences prefs = requireActivity().getSharedPreferences("WazuhSession", Context.MODE_PRIVATE);
+        prefs.edit().putInt("min_severity", newVal).apply();
+
+        // Kirim ke Server (Butuh Token FCM)
+        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult() != null) {
+                updateServerSettings(task.getResult(), newVal);
+            }
+        });
+    }
+
+    private void updateServerSettings(String fcmToken, int severity) {
+        new Thread(() -> {
+            try {
+                // Pastikan ApiClient punya method updateUserSettings (yang baru kita buat)
+                apiClient.updateUserSettings(sessionToken, appUsername, fcmToken, severity);
+                new Handler(Looper.getMainLooper()).post(() ->
+                        Toast.makeText(getContext(), "Setting Notifikasi Tersimpan!", Toast.LENGTH_SHORT).show());
+            } catch (Exception e) {
+                new Handler(Looper.getMainLooper()).post(() ->
+                        Toast.makeText(getContext(), "Gagal sync server", Toast.LENGTH_SHORT).show());
+            }
+        }).start();
+    }
+
+    // --- LOGIC 2: SERVER MANAGER ---
     private void loadServers() {
         if (apiClient == null) return;
 
         new Thread(() -> {
             try {
-                // Pastikan ApiClient punya method getCredentials!
                 JSONObject response = apiClient.getCredentials(sessionToken, appUsername);
                 JSONArray data = response.optJSONArray("data");
 
@@ -103,58 +146,46 @@ public class SettingsFragment extends Fragment {
                 new Handler(Looper.getMainLooper()).post(() -> {
                     if (getContext() != null) {
                         ServerAdapter adapter = new ServerAdapter(getContext(), list, this::deleteServer);
-                        if (rvServers != null) rvServers.setAdapter(adapter);
+                        rvServers.setAdapter(adapter);
                     }
                 });
 
             } catch (Exception e) {
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    if (getContext() != null)
-                        Toast.makeText(getContext(), "Gagal memuat list: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+                // Handle error
             }
         }).start();
     }
 
     private void deleteServer(String id, String name) {
-        if (getContext() == null) return;
-
-        new MaterialAlertDialogBuilder(getContext())
+        new MaterialAlertDialogBuilder(requireContext())
                 .setTitle("Hapus Server")
-                .setMessage("Yakin hapus " + name + "?")
-                .setPositiveButton("Hapus", (dialog, which) -> {
+                .setMessage("Hapus " + name + "?")
+                .setPositiveButton("Ya", (dialog, which) -> {
                     new Thread(() -> {
                         try {
                             apiClient.deleteCredential(sessionToken, appUsername, id);
-                            new Handler(Looper.getMainLooper()).post(() -> {
-                                Toast.makeText(getContext(), "Terhapus!", Toast.LENGTH_SHORT).show();
-                                loadServers();
-                            });
-                        } catch (Exception e) {
-                            // Silent fail
-                        }
+                            new Handler(Looper.getMainLooper()).post(this::loadServers);
+                        } catch (Exception e) {}
                     }).start();
                 })
                 .setNegativeButton("Batal", null)
                 .show();
     }
 
-private void showAddServerDialog() {
-        if (getContext() == null) return;
-
+    private void showAddServerDialog() {
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_server, null);
         EditText etName = dialogView.findViewById(R.id.etCredName);
         EditText etHost = dialogView.findViewById(R.id.etCredHost);
         EditText etUser = dialogView.findViewById(R.id.etApiUser);
         EditText etPass = dialogView.findViewById(R.id.etApiPass);
 
-        // Tambahan Input Indexer
+        // Tambahan Indexer
         EditText etIdxUser = dialogView.findViewById(R.id.etIndexerUser);
         EditText etIdxPass = dialogView.findViewById(R.id.etIndexerPass);
 
-        new MaterialAlertDialogBuilder(getContext())
+        new MaterialAlertDialogBuilder(requireContext())
                 .setView(dialogView)
-                .setTitle("Tambah Server Wazuh")
+                .setTitle("Tambah Server")
                 .setPositiveButton("Simpan", (dialog, which) -> {
                     String name = etName.getText().toString();
                     String host = etHost.getText().toString();
@@ -163,34 +194,29 @@ private void showAddServerDialog() {
                     String idxUser = etIdxUser.getText().toString();
                     String idxPass = etIdxPass.getText().toString();
 
-                    // Default value kalau kosong
+                    // Default indexer
                     if (idxUser.isEmpty()) idxUser = "admin";
                     if (idxPass.isEmpty()) idxPass = "admin";
 
-                    if (!name.isEmpty() && !host.isEmpty() && !user.isEmpty() && !pass.isEmpty()) {
+                    if (!name.isEmpty() && !host.isEmpty()) {
                         saveServer(name, host, user, pass, idxUser, idxPass);
-                    } else {
-                        Toast.makeText(getContext(), "Harap isi field wajib", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .setNegativeButton("Batal", null)
                 .show();
     }
 
-    // Method Save Server Diupdate Parameternya
     private void saveServer(String name, String host, String user, String pass, String idxUser, String idxPass) {
         new Thread(() -> {
             try {
-                // Panggil method addCredential yang baru (6 parameter)
                 apiClient.addCredential(sessionToken, appUsername, name, host, user, pass, idxUser, idxPass);
-
                 new Handler(Looper.getMainLooper()).post(() -> {
-                    Toast.makeText(getContext(), "Berhasil Menambahkan Server!", Toast.LENGTH_SHORT).show();
-                    loadServers(); // Refresh list
+                    Toast.makeText(getContext(), "Server Ditambahkan!", Toast.LENGTH_SHORT).show();
+                    loadServers();
                 });
             } catch (Exception e) {
                 new Handler(Looper.getMainLooper()).post(() ->
-                    Toast.makeText(getContext(), "Gagal: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                        Toast.makeText(getContext(), "Gagal: " + e.getMessage(), Toast.LENGTH_SHORT).show());
             }
         }).start();
     }

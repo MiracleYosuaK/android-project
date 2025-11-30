@@ -206,11 +206,39 @@ public class ApiClient {
         }
     }
 
-    public void sendFcmToken(String token, String appUsername, String fcmToken) throws IOException {
+//    public void sendFcmToken(String token, String appUsername, String fcmToken) throws IOException {
+//        JSONObject jsonPayload = new JSONObject();
+//        try {
+//            jsonPayload.put("app_username", appUsername);
+//            jsonPayload.put("fcm_token", fcmToken);
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
+//
+//        RequestBody body = RequestBody.create(jsonPayload.toString(), JSON);
+//        Request request = new Request.Builder()
+//                .url(BASE_URL + "/api/fcm_token")
+//                .post(body)
+//                .header("Authorization", "Bearer " + token)
+//                .header("Content-Type", "application/json")
+//                .build();
+//
+//        try (Response response = client.newCall(request).execute()) {
+//            if (!response.isSuccessful()) {
+//                Log.e("ApiClient", "Failed to send FCM token: " + response.body().string());
+//            } else {
+//                Log.d("ApiClient", "FCM token sent successfully.");
+//            }
+//        }
+//    }
+
+    // Method baru yang lebih lengkap: Kirim Token + Settingan Severity
+    public void updateUserSettings(String token, String appUsername, String fcmToken, int minSeverity) throws IOException {
         JSONObject jsonPayload = new JSONObject();
         try {
             jsonPayload.put("app_username", appUsername);
             jsonPayload.put("fcm_token", fcmToken);
+            jsonPayload.put("min_severity", minSeverity); // Data baru
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -223,12 +251,24 @@ public class ApiClient {
                 .header("Content-Type", "application/json")
                 .build();
 
+        client.newCall(request).execute();
+    }
+    // Method khusus untuk halaman Alerts (Notifikasi)
+    public JSONObject getNotificationHistory(String token, String appUsername) throws IOException, JSONException {
+        JSONObject jsonPayload = new JSONObject();
+        jsonPayload.put("app_username", appUsername);
+
+        RequestBody body = RequestBody.create(jsonPayload.toString(), JSON);
+        Request request = new Request.Builder()
+                .url(BASE_URL + "/api/notifications") // Endpoint baru
+                .post(body)
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .build();
+
         try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                Log.e("ApiClient", "Failed to send FCM token: " + response.body().string());
-            } else {
-                Log.d("ApiClient", "FCM token sent successfully.");
-            }
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+            return new JSONObject(response.body().string());
         }
     }
 

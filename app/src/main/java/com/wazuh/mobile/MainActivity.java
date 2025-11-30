@@ -145,14 +145,29 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void sendTokenToServer(String fcmToken) {
-        new Thread(() -> {
-            try {
-                // Pastikan ApiClient punya method ini!
-                apiClient.sendFcmToken(sessionToken, appUsername, fcmToken);
-            } catch (Exception e) {
-                Log.e(TAG, "Gagal kirim token ke server", e);
-            }
-        }).start();
-    }
+//    private void sendTokenToServer(String fcmToken) {
+//        new Thread(() -> {
+//            try {
+//                // Pastikan ApiClient punya method ini!
+//                apiClient.sendFcmToken(sessionToken, appUsername, fcmToken);
+//            } catch (Exception e) {
+//                Log.e(TAG, "Gagal kirim token ke server", e);
+//            }
+//        }).start();
+//    }
+private void sendTokenToServer(String fcmToken) {
+    // Ambil severity yang tersimpan (atau default 12)
+    SharedPreferences prefs = getSharedPreferences("WazuhSession", MODE_PRIVATE);
+    int savedSeverity = prefs.getInt("min_severity", 12);
+
+    new Thread(() -> {
+        try {
+            // Panggil method BARU: updateUserSettings
+            apiClient.updateUserSettings(sessionToken, appUsername, fcmToken, savedSeverity);
+            Log.d(TAG, "Token & Settings sent to server. Severity: " + savedSeverity);
+        } catch (Exception e) {
+            Log.e(TAG, "Gagal kirim token ke server", e);
+        }
+    }).start();
+}
 }

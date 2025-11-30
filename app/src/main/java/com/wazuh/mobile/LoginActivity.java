@@ -64,9 +64,13 @@ public class LoginActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 JSONObject response = apiClient.loginToMyBackend(username, password);
-                String sessionToken = response.getString("session_token");
 
-                runOnUiThread(() -> loginSuccess(sessionToken, username));
+                String sessionToken = response.getString("session_token");
+                // Ambil min_severity dari respon server (Default 12 jika tidak ada)
+                int minSeverity = response.optInt("min_severity", 12);
+
+                // Kirim ke loginSuccess
+                runOnUiThread(() -> loginSuccess(sessionToken, username, minSeverity));
 
             } catch (Exception e) {
                 Log.e(TAG, "Login failed", e);
@@ -75,24 +79,21 @@ public class LoginActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void loginSuccess(String sessionToken, String username) {
-        // === PERBAIKAN DI SINI (SAMAKAN DENGAN MAINACTIVITY) ===
-
-        // 1. Nama File: Ganti "WazuhPrefs" -> "WazuhSession"
+    // Update parameternya: Tambah 'int minSeverity'
+    private void loginSuccess(String sessionToken, String username, int minSeverity) {
         SharedPreferences sharedPreferences = getSharedPreferences("WazuhSession", MODE_PRIVATE);
-
         SharedPreferences.Editor editor = sharedPreferences.edit();
 
-        // 2. Nama Key: Ganti "session_token" -> "token", "app_username" -> "username"
         editor.putString("token", sessionToken);
         editor.putString("username", username);
+        // SIMPAN SETTINGAN DARI SERVER KE HP
+        editor.putInt("min_severity", minSeverity);
 
         editor.apply();
 
         Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show();
 
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-        // Tambahkan flag ini biar pas di Main kalau tekan Back gak balik ke Login lagi
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
