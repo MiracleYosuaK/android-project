@@ -9,12 +9,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -34,10 +36,15 @@ public class DashboardFragment extends Fragment {
     private View view;
 
     // UI Components
-    private TextView tvGreetingUser, tvTotalEvents, tvHighCriticalAlerts, tvApiStatus, tvAiSummary, tvNoHighPriorityAlerts;
-    private RecyclerView rvAgents, rvAlerts;
-    private ProgressBar aiSummaryProgressBar;
+    private TextView tvGreetingUser, tvTotalEvents, tvHighCriticalAlerts, tvApiStatus;
+    private RecyclerView rvAgents;
     private ImageButton btnSync;
+
+    // UI Components AI Summary (NEW REDESIGN)
+    private ProgressBar aiSummaryProgressBar;
+    private LinearLayout layoutAiContent;
+    private CardView cardThreatBanner;
+    private TextView tvThreatLevel, tvThreatHeadline, tvExecSummary, tvIocContent, tvMitigationContent;
 
     public DashboardFragment() {}
 
@@ -46,7 +53,6 @@ public class DashboardFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_dashboard, container, false);
 
-        // Ambil data session dari MainActivity
         if (getActivity() instanceof MainActivity) {
             MainActivity mainActivity = (MainActivity) getActivity();
             this.apiClient = mainActivity.apiClient;
@@ -65,18 +71,22 @@ public class DashboardFragment extends Fragment {
         tvTotalEvents = view.findViewById(R.id.tvTotalEvents);
         tvHighCriticalAlerts = view.findViewById(R.id.tvHighCriticalAlerts);
         tvApiStatus = view.findViewById(R.id.tvApiStatus);
-
-        tvAiSummary = view.findViewById(R.id.tvAiSummary);
-        aiSummaryProgressBar = view.findViewById(R.id.aiSummaryProgressBar);
-
-        tvNoHighPriorityAlerts = view.findViewById(R.id.tvNoHighPriorityAlerts);
         btnSync = view.findViewById(R.id.btnSync);
+
+        // -- Inisialisasi Komponen AI Baru --
+        aiSummaryProgressBar = view.findViewById(R.id.aiSummaryProgressBar);
+        layoutAiContent = view.findViewById(R.id.layoutAiContent);
+
+        cardThreatBanner = view.findViewById(R.id.cardThreatBanner);
+        tvThreatLevel = view.findViewById(R.id.tvThreatLevel);
+        tvThreatHeadline = view.findViewById(R.id.tvThreatHeadline);
+        tvExecSummary = view.findViewById(R.id.tvExecSummary);
+        tvIocContent = view.findViewById(R.id.tvIocContent);
+        tvMitigationContent = view.findViewById(R.id.tvMitigationContent);
+        // ------------------------------------
 
         rvAgents = view.findViewById(R.id.rvAgents);
         rvAgents.setLayoutManager(new LinearLayoutManager(getContext()));
-
-        rvAlerts = view.findViewById(R.id.rvAlerts);
-        rvAlerts.setLayoutManager(new LinearLayoutManager(getContext()));
 
         btnSync.setOnClickListener(v -> loadAllData());
 
@@ -88,14 +98,17 @@ public class DashboardFragment extends Fragment {
     private void loadAllData() {
         if (apiClient == null) return;
 
-        // Set Loading State
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).setLoadingState(true);
         }
 
+        // Sembunyikan konten AI saat loading ulang
+        if (layoutAiContent != null) layoutAiContent.setVisibility(View.GONE);
+        if (aiSummaryProgressBar != null) aiSummaryProgressBar.setVisibility(View.VISIBLE);
+
         new Thread(() -> {
             try {
-                // 1. Ambil Data Dasar
+                // 1. Ambil Data Dasar (Dashboard + Agents)
                 final JSONObject dashboardResponse = apiClient.getDashboardSummary(sessionToken, appUsername);
                 final JSONObject agentsResponse = apiClient.getAgents(sessionToken, appUsername);
 
@@ -103,19 +116,17 @@ public class DashboardFragment extends Fragment {
                     updateDashboardUI(dashboardResponse);
                     updateAgentsList(agentsResponse);
 
-                    // Matikan loading utama, nyalakan loading AI
                     if (getActivity() instanceof MainActivity) {
                         ((MainActivity) getActivity()).setLoadingState(false);
                     }
-                    if (aiSummaryProgressBar != null) aiSummaryProgressBar.setVisibility(View.VISIBLE);
-                    if (tvAiSummary != null) tvAiSummary.setText("");
                 });
 
-                // 2. Ambil AI (Berat)
+                // 2. Ambil AI (Berat, dipanggil terpisah)
                 final JSONObject aiSummaryResponse = apiClient.getAiSummary(sessionToken, appUsername);
                 new Handler(Looper.getMainLooper()).post(() -> {
                     updateAiSummaryUI(aiSummaryResponse);
                     if (aiSummaryProgressBar != null) aiSummaryProgressBar.setVisibility(View.GONE);
+                    if (layoutAiContent != null) layoutAiContent.setVisibility(View.VISIBLE);
                 });
 
             } catch (Exception e) {
@@ -139,48 +150,7 @@ public class DashboardFragment extends Fragment {
             tvApiStatus.setText(data.optString("api_status", "Connected"));
             tvTotalEvents.setText(String.valueOf(data.optInt("total_events_3h", 0)));
             tvHighCriticalAlerts.setText(String.valueOf(data.optInt("high_critical_alerts_count", 0)));
-
-            JSONArray alertsArray = data.optJSONArray("high_priority_alerts");
-            List<Alert> alertList = new ArrayList<>();
-
-            if (alertsArray != null) {
-                for (int i = 0; i < alertsArray.length(); i++) {
-                    JSONObject obj = alertsArray.getJSONObject(i);
-
-                    String levelStr = obj.optString("level", "0");
-                    int level = Integer.parseInt(levelStr);
-                    Alert.Severity severity;
-
-                    if (level >= 12) severity = Alert.Severity.CRITICAL;
-                    else if (level >= 7) severity = Alert.Severity.HIGH;
-                    else if (level >= 4) severity = Alert.Severity.MEDIUM;
-                    else severity = Alert.Severity.LOW;
-
-                    // Masukkan 7 Parameter sesuai Alert.java
-                    alertList.add(new Alert(
-                            obj.optString("title"),                 // 1. Title
-                            "System",                               // 2. Agent Name (Default)
-                            levelStr,                               // 3. Level
-                            obj.optString("timeAgo"),               // 4. Time
-                            severity,                               // 5. Severity
-                            obj.optString("description"),           // 6. Full Description
-                            obj.optString("credential_name")        // 7. Source Server
-                    ));
-                }
-            }
-
-            if (alertList.isEmpty()) {
-                tvNoHighPriorityAlerts.setVisibility(View.VISIBLE);
-                rvAlerts.setVisibility(View.GONE);
-            } else {
-                tvNoHighPriorityAlerts.setVisibility(View.GONE);
-                rvAlerts.setVisibility(View.VISIBLE);
-
-                // Gunakan getContext() untuk inisialisasi Adapter
-                AlertAdapter adapter = new AlertAdapter(getContext(), alertList);
-                rvAlerts.setAdapter(adapter);
-            }
-
+            // Bagian High Priority Alert List dihapus total dari sini
         } catch (Exception e) {
             Log.e(TAG, "UI Update Error", e);
         }
@@ -191,42 +161,139 @@ public class DashboardFragment extends Fragment {
         try {
             JSONArray agentsArray = data.optJSONArray("agents");
             List<Agent> agentList = new ArrayList<>();
-
             if (agentsArray != null) {
                 for (int i = 0; i < agentsArray.length(); i++) {
                     JSONObject obj = agentsArray.getJSONObject(i);
-
-                    // Konversi Status String ke Enum
                     String statusStr = obj.optString("status", "disconnected");
-                    Agent.Status status = "active".equalsIgnoreCase(statusStr)
-                            ? Agent.Status.ACTIVE
-                            : Agent.Status.INACTIVE;
-
-                    // Default Type
-                    Agent.Type type = Agent.Type.SERVER;
-
-                    // Constructor Agent
-                    agentList.add(new Agent(
-                            obj.optString("name"),
-                            obj.optString("ip"),
-                            status,
-                            type
-                    ));
+                    Agent.Status status = "active".equalsIgnoreCase(statusStr) ? Agent.Status.ACTIVE : Agent.Status.INACTIVE;
+                    agentList.add(new Agent(obj.optString("name"), obj.optString("ip"), status, Agent.Type.SERVER));
                 }
             }
-
-            // Gunakan getContext() untuk inisialisasi Adapter
             AgentAdapter adapter = new AgentAdapter(getContext(), agentList);
             rvAgents.setAdapter(adapter);
-
         } catch (Exception e) {
             Log.e(TAG, "Agents Update Error", e);
         }
     }
 
+    // --- PARSER JSON AI SUMMARY ---
     private void updateAiSummaryUI(JSONObject data) {
         if (data == null) return;
-        String summary = data.optString("summary", "No Summary.");
-        tvAiSummary.setText(summary);
+
+        try {
+            // 1. Parse Basic Fields
+            String level = data.optString("threat_level", "LOW").toUpperCase();
+            String headline = data.optString("headline", "System Healthy");
+            String execSummary = data.optString("executive_summary", "No anomalies detected.");
+
+            // Update UI Header
+            tvThreatLevel.setText(level);
+            tvThreatHeadline.setText(headline);
+            tvExecSummary.setText(execSummary);
+
+            // Logika Warna Banner
+            int colorCode;
+            switch (level) {
+                case "CRITICAL": colorCode = Color.parseColor("#D32F2F"); break; // Merah Tua
+                case "HIGH":     colorCode = Color.parseColor("#F57C00"); break; // Orange
+                case "MEDIUM":   colorCode = Color.parseColor("#FBC02D"); break; // Kuning
+                default:         colorCode = Color.parseColor("#388E3C"); break; // Hijau
+            }
+            cardThreatBanner.setCardBackgroundColor(colorCode);
+
+            // 2. Parse IOC (Indikator Kompromi)
+            JSONObject ioc = data.optJSONObject("ioc");
+            StringBuilder iocBuilder = new StringBuilder();
+
+            if (ioc != null) {
+                // Attacker IPs
+                JSONArray attackers = ioc.optJSONArray("attacker_ips");
+                if (attackers != null && attackers.length() > 0) {
+                    iocBuilder.append("🔴 Attackers:\n");
+                    for (int i = 0; i < attackers.length(); i++) {
+                        iocBuilder.append("   • ").append(attackers.getString(i)).append("\n");
+                    }
+                    iocBuilder.append("\n");
+                }
+
+                // Infected Endpoints (Victims)
+                JSONArray victims = ioc.optJSONArray("infected_endpoints");
+                if (victims != null && victims.length() > 0) {
+                    iocBuilder.append("💻 Victims:\n");
+                    for (int i = 0; i < victims.length(); i++) {
+                        iocBuilder.append("   • ").append(victims.getString(i)).append("\n");
+                    }
+                    iocBuilder.append("\n");
+                }
+
+                // 1. File Artifacts
+                JSONArray files = ioc.optJSONArray("file_artifacts");
+                if (files != null && files.length() > 0) {
+                    iocBuilder.append("📂 Files & Hashes:\n");
+                    for (int i = 0; i < files.length(); i++) {
+                        iocBuilder.append("   • ").append(files.getString(i)).append("\n");
+                    }
+                    iocBuilder.append("\n");
+                }
+
+                // 2. Network Artifacts
+                JSONArray network = ioc.optJSONArray("network_artifacts");
+                if (network != null && network.length() > 0) {
+                    iocBuilder.append("🌐 Network Artifacts:\n");
+                    for (int i = 0; i < network.length(); i++) {
+                        iocBuilder.append("   • ").append(network.getString(i)).append("\n");
+                    }
+                    iocBuilder.append("\n");
+                }
+
+                // 3. System Artifacts
+                JSONArray system = ioc.optJSONArray("system_artifacts");
+                if (system != null && system.length() > 0) {
+                    iocBuilder.append("⚙️ Registry & System:\n");
+                    for (int i = 0; i < system.length(); i++) {
+                        iocBuilder.append("   • ").append(system.getString(i)).append("\n");
+                    }
+                    iocBuilder.append("\n");
+                }
+
+                // 4. Email Artifacts
+                JSONArray email = ioc.optJSONArray("email_artifacts");
+                if (email != null && email.length() > 0) {
+                    iocBuilder.append("📧 Email Artifacts:\n");
+                    for (int i = 0; i < email.length(); i++) {
+                        iocBuilder.append("   • ").append(email.getString(i)).append("\n");
+                    }
+                    iocBuilder.append("\n");
+                }
+
+                // Target Users
+                JSONArray users = ioc.optJSONArray("target_users");
+                if (users != null && users.length() > 0) {
+                    iocBuilder.append("👤 Targeted Users:\n");
+                    for (int i = 0; i < users.length(); i++) {
+                        iocBuilder.append("   • ").append(users.getString(i)).append("\n");
+                    }
+                }
+            }
+
+            if (iocBuilder.length() == 0) iocBuilder.append("No specific IoC extracted.");
+            tvIocContent.setText(iocBuilder.toString().trim());
+
+            // 3. Parse Mitigation Plan
+            JSONArray mitigation = data.optJSONArray("mitigation");
+            StringBuilder mitBuilder = new StringBuilder();
+            if (mitigation != null && mitigation.length() > 0) {
+                for (int i = 0; i < mitigation.length(); i++) {
+                    mitBuilder.append("🛡️ ").append(mitigation.getString(i)).append("\n\n");
+                }
+            } else {
+                mitBuilder.append("No specific action needed.");
+            }
+            tvMitigationContent.setText(mitBuilder.toString().trim());
+
+        } catch (Exception e) {
+            Log.e(TAG, "AI Parsing Error", e);
+            tvExecSummary.setText("Error parsing AI analysis result.");
+        }
     }
 }
